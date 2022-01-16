@@ -1,6 +1,8 @@
+from Figures.Ellipse import Ellipse
 from Picture import Picture
 from Color import Color, get_similar_color
-from Rectangle import Rectangle
+from Figures.Rectangle import Rectangle
+from Figures.Triangle import Triangle
 
 c = Color()
 
@@ -18,6 +20,11 @@ def test_picture():
         # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
         Rectangle.gen_random(size=(240, 320))
     )
+    p.parts.append(
+        # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
+        # Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=c.RED, max_size=(240, 320))
+        Ellipse(center=(100, 100), a=20, b=20, color=c.RED, max_size=(240, 320))
+    )
     # p.parts.append(
     #     Rectangle(p1=(0, 0), p2=(100, 200), color=c.DARKGREEN),
     # )
@@ -25,8 +32,9 @@ def test_picture():
     p.gen_picture()
     p.visualize()
 
-    # p.mutate()
-    # p.visualize()
+    p.parts[1].mutate()
+    p.mutate()
+    p.visualize()
 
 
 def main():

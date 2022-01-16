@@ -1,0 +1,92 @@
+import random
+
+import numpy as np
+
+from Color import Color, get_similar_color, c
+
+
+class Ellipse:
+    MUTATION_POSITION_PROB = 0.25
+    MUTATION_COLOR_PROB = 0.1
+    MUTATION_POSITION_SCALE = 15
+
+    CUDA_FIGURE_ID = 0
+
+    def __init__(self, center, a, b, color, max_size):
+        self.center = list(center)
+        self.a = a
+        self.b = b
+        self.color = color
+
+        self.max_h = max_size[0]
+        self.max_w = max_size[1]
+
+        self._repr = np.zeros(9)
+
+    def add_part(self, picture):
+        xs = np.linspace(0, self.max_h, num=self.max_h)
+        ys = np.linspace(0, self.max_w, num=self.max_w)
+        xv, yv = np.meshgrid(ys, xs)
+
+        cx, cy = self.center
+        mask = (xv - cx)**2 / (self.a * self.a) + (yv - cy)**2 / (self.b * self.b) < 1
+        picture[mask, :] = self.color
+
+        return picture
+
+    def mutate(self):
+        deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=4)
+
+        if random.random() < self.MUTATION_POSITION_PROB:
+            self.center[0] = int(self.center[0] + deltas[0])
+        if random.random() < self.MUTATION_POSITION_PROB:
+            self.center[1] = int(self.center[1] + deltas[1])
+        if random.random() < self.MUTATION_POSITION_PROB:
+            self.a = int(self.a + deltas[2])
+        if random.random() < self.MUTATION_POSITION_PROB:
+            self.b = int(self.b + deltas[3])
+
+        self.center[0] = max(0, self.center[0])
+        self.center[1] = max(0, self.center[1])
+
+        self.center[0] = min(self.max_h, self.center[0])
+        self.center[1] = min(self.max_h, self.center[1])
+
+        if self.a == 0:
+            self.a = 1
+        if self.b == 0:
+            self.b = 1
+
+        if random.random() < self.MUTATION_COLOR_PROB:
+            self.color = get_similar_color(self.color)
+
+        return self
+
+    @classmethod
+    def gen_random(cls, size):
+        h = size[0]
+        w = size[1]
+
+        h1 = random.randint(0, h)
+        w1 = random.randint(0, w)
+
+        return Ellipse(
+            center=(h1, w1),
+            a=random.randint(5, h // 2),
+            b=random.randint(5, w // 2),
+            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            max_size=(h, w)
+        )
+
+    def _get_repr(self):
+        self._repr[0] = self.CUDA_FIGURE_ID
+        self._repr[1] = self.center[0]
+        self._repr[2] = self.center[1]
+        self._repr[3] = self.a
+        self._repr[4] = self.b
+        self._repr[5:7] = self.color
+
+    def __repr__(self):
+        return (
+            f"Ellipse(center={self.center}, a={self.a}, b={self.b}, color=np.array({self.color}), max_size=({self.max_h}, {self.max_w}))"
+        )

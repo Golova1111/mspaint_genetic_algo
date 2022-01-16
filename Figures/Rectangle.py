@@ -10,6 +10,8 @@ class Rectangle:
     MUTATION_COLOR_PROB = 0.1
     MUTATION_POSITION_SCALE = 15
 
+    CUDA_FIGURE_ID = 0
+
     def __init__(self, p1, p2, color, max_size):
         self.p1 = list(p1)
         self.p2 = list(p2)
@@ -17,6 +19,8 @@ class Rectangle:
 
         self.max_h = max_size[0]
         self.max_w = max_size[1]
+
+        self._repr = np.zeros(9)
 
     def add_part(self, picture):
         picture[
@@ -70,7 +74,16 @@ class Rectangle:
             max_size=(h, w)
         )
 
+    def _get_repr(self):
+        self._repr[0] = self.CUDA_FIGURE_ID
+        self._repr[1] = self.p1[0]
+        self._repr[2] = self.p1[1]
+        self._repr[3] = self.p2[0]
+        self._repr[4] = self.p2[1]
+        self._repr[5:7] = self.color
+
+
     def __repr__(self):
         return (
-            f"{self.p1}, {self.p2}, {c.color_dict[tuple(self.color)]}"
+            f"Rectangle(p1={self.p1}, p2={self.p2}, color=np.array({self.color}), max_size=({self.max_h}, {self.max_w}))"
         )

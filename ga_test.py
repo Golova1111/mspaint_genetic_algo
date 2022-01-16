@@ -1,72 +1,72 @@
-import numpy as np
-from matplotlib import image
 from numba import cuda
 
 from GA import GeneticAlgo
-from Picture import Picture
-from Rectangle import Rectangle
+
+d_picture = None
 
 
-def main():
-    demo_pic = image.imread('pic/demo_pic.jpg').astype(np.int16)
-
-    figures_number = 13
-    max_figures_number = 25
+def init(demo_pic):
+    figures_number = 1
+    max_figures_number = 100
     figures_delta = 1
 
-    # prev_winner = None
+    d_picture = cuda.to_device(demo_pic)
+    prev_winner = None
 
     # ===============
 
-    prev_winner = Picture.generate_default(
-        picture=demo_pic,
-        max_fignum=figures_number
-    )
-    prev_winner.parts = [
-    #     Rectangle(p1=[221, 0], p2=[360, 480],  color=np.array([100, 177,  79]), max_size=(240, 320)),
-    #     Rectangle(p1=[0, 142], p2=[278, 426],  color=np.array([237, 229, 179]), max_size=(240, 320)),
-    #     Rectangle(p1=[88, 167], p2=[181, 406], color=np.array([119,   1,  18]), max_size=(240, 320)),
-    #     Rectangle(p1=[0, 77], p2=[85, 480],    color=np.array([174, 218, 234]), max_size=(240, 320)),
+    # prev_winner = Picture.generate_default(
+    #     picture=demo_pic,
+    #     max_fignum=figures_number
+    # )
 
+    # c = 2
+
+    # prev_winner = Picture(size=(360 * c, 480 * c))
+    #
+    # prev_winner.parts = [
+    #     Rectangle(p1=[ 23 * c,  28 * c], p2=[324 * c, 480 * c], color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[ 17 * c,  99 * c], p2=[181 * c, 480 * c], color=np.array([174, 218, 234]), max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[ 88 * c, 183 * c], p2=[179 * c, 392 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[278 * c,   0 * c], p2=[360 * c, 480 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[  0 * c,   0 * c], p2=[ 14 * c, 480 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[216 * c,   0 * c], p2=[278 * c, 143 * c], color=np.array([196, 230, 48]),  max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[139 * c, 148 * c], p2=[181 * c, 423 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[102 * c,  28 * c], p2=[222 * c, 141 * c], color=np.array([255, 255, 255]), max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[269 * c,   0 * c], p2=[331 * c, 143 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[347 * c,   0 * c], p2=[360 * c, 480 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c)),
+    #     Rectangle(p1=[ 33 * c,  25 * c], p2=[101 * c,  98 * c], color=np.array([231, 129, 48]),  max_size=(360 * c, 480 * c)),
     # ]
-    # [
-        Rectangle(p1=[23, 28], p2=[324, 480],   color=np.array([237, 229, 179]), max_size=(360, 480)),
-        Rectangle(p1=[17, 99], p2=[181, 480],   color=np.array([174, 218, 234]), max_size=(360, 480)),
-        Rectangle(p1=[88, 183], p2=[179, 392],  color=np.array([119,   1,  18]), max_size=(360, 480)),
-        Rectangle(p1=[278, 0], p2=[360, 480],   color=np.array([100, 177,  79]), max_size=(360, 480)),
-        Rectangle(p1=[0, 0], p2=[14, 480],      color=np.array([0  , 0  ,  0]), max_size=(360, 480)),
-        Rectangle(p1=[216, 0], p2=[278, 143],   color=np.array([196, 230,  48]), max_size=(360, 480)),
-        Rectangle(p1=[139, 148], p2=[181, 423], color=np.array([119,   1,  18]), max_size=(360, 480)),
-        Rectangle(p1=[102, 28], p2=[222, 141],  color=np.array([255, 255,  255]), max_size=(360, 480)),
-        Rectangle(p1=[269, 0], p2=[331, 143],   color=np.array([100, 177,  79]), max_size=(360, 480)),
-        Rectangle(p1=[347, 0], p2=[360, 480],   color=np.array([0  , 0  ,  0]), max_size=(360, 480)),
-        Rectangle(p1=[33, 25], p2=[101, 98],    color=np.array([231, 129,  48]), max_size=(360, 480)),
-    ]
 
-    prev_winner.gen_picture()
-    prev_winner.visualize(f"score: {prev_winner.score(demo_pic)}")
+    # prev_winner.gen_picture()
+    # prev_winner.visualize(f"score: {prev_winner.score(demo_pic)}")
 
+    prev_best_score = None
     while figures_number < max_figures_number:
         ga = GeneticAlgo(
             picture=demo_pic,
+            d_picture=d_picture,
             fignum=figures_number,
             prev_winner=prev_winner
         )
         prev_winner, best_score = ga.run()
 
+        if prev_best_score:
+            if best_score / prev_best_score > 0.9999:
+                break
+
+        prev_best_score = best_score
+
         print(f"figures: {figures_number}, score: {best_score}")
 
         print("[")
         for elem in prev_winner.parts:
-            print(f"    Rectangle(p1={elem.p1}, p2={elem.p2}, color=np.array({elem.color}), max_size=(360, 480)),")
+            print(f"    {elem},")
         print("]")
 
         prev_winner.visualize(title=f"== BEST for {figures_number} figures, score {best_score} == ")
         figures_number += figures_delta
 
-
-if __name__ == '__main__':
-    main()
 
 # [
 #     Rectangle(p1=[23, 28], p2=[324, 480],   color=np.array([237, 229, 179]), max_size=(240, 320)),

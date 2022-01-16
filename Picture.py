@@ -1,13 +1,15 @@
 import copy
+import datetime
 import random
 
-import numba
 from matplotlib import pyplot as plt
 
 import numpy as np
-from numba import cuda
 
-from Rectangle import Rectangle
+from Figures.Ellipse import Ellipse
+from Figures.Rectangle import Rectangle
+from Figures.Triangle import Triangle
+from cuda import _calc_delta
 
 
 class Picture:
@@ -29,9 +31,7 @@ class Picture:
         ) + 255
 
     def gen_picture(self):
-        self.picture = np.ones(
-            (self.w, self.h, 3), dtype=np.int16
-        ) + 255
+        self.picture[:, :, :] = 255
 
         for elem in self.parts:
             self.picture = elem.add_part(self.picture)
@@ -43,17 +43,18 @@ class Picture:
         plt.imshow(self.picture, interpolation='nearest')
         if title:
             plt.title(title)
+        plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
         plt.show()
 
     def delta(self, icon_picture):
         self._score = np.sum(np.abs(icon_picture - self.picture))
         return self._score
 
-    def score(self, icon_picture):
+    def score(self, d_icon_picture):
         if self._score:
             return self._score
         else:
-            self._score = self.delta(icon_picture)
+            self._score = _calc_delta(image=self.picture, device_pic=d_icon_picture)
             return self._score
 
     def _swap_random(self, gp=True):
@@ -72,10 +73,21 @@ class Picture:
             else:
                 position = random.randint(0, len(self.parts))
 
-            self.parts.insert(
-                position,
-                Rectangle.gen_random(size=self.size)
-            )
+            if random.random() < 0.5:
+                self.parts.insert(
+                    position,
+                    Rectangle.gen_random(size=self.size)
+                )
+            elif random.random() < 0.5:
+                self.parts.insert(
+                    position,
+                    Triangle.gen_random(size=self.size)
+                )
+            else:
+                self.parts.insert(
+                    position,
+                    Ellipse.gen_random(size=self.size)
+                )
 
             if gp:
                 self.gen_picture()

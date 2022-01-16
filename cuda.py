@@ -7,12 +7,6 @@ from numba import cuda
 
 @cuda.jit
 def _calc_elem_delta(curr_image, picture, answer):
-    # p = cuda.grid(3)
-    # answer[0] += abs(curr_image[p] - picture[p])
-
-    # p = cuda.grid(2)
-    # for i in range(3):
-    #     answer[0] += abs(curr_image[p[0], p[1], i] - picture[p[0], p[1], i])
     sum = 0
 
     p, c = cuda.grid(2)
@@ -23,9 +17,37 @@ def _calc_elem_delta(curr_image, picture, answer):
     answer[p + curr_image.shape[1] * c] = sum
 
 
-@cuda.reduce
-def sum_reduce(a, b):
-    return a + b
+
+@cuda.jit
+def _gen_elem_picture(curr_image, picture_rules):
+    x, y = cuda.grid(2)
+
+    for rule in picture_rules:
+        if rule[0] == 0:
+            if (rule[1] <= x <= rule[2]) and (rule[1] <= y <= rule[2]):
+                curr_image[x, y, :] = rule[3], rule[4], rule[5]
+        if rule[0] == 1:
+            ax, ay = rule[1], rule[2]
+            bx, by = rule[3], rule[4]
+            cx, cy = rule[5], rule[6]
+
+            side_1 = (x - bx) * (ay - by) - (ax - bx) * (y - by) > 0
+            side_2 = (x - cx) * (by - cy) - (bx - cx) * (y - cy) > 0
+            side_3 = (x - ax) * (cy - ay) - (cx - ax) * (y - ay) > 0
+
+            if side_1 == side_2 == side_3:
+                curr_image[x, y, :] = rule[7], rule[8], rule[9]
+        if rule[0] == 2:
+            cx, cy = rule[1], rule[2]
+            a, b = rule[3], rule[4]
+
+            mask = (x - cx) ** 2 / (a * a) + (y - cy) ** 2 / (b * b) < 1
+            if mask:
+                curr_image[x, y, :] = rule[5], rule[6], rule[7]
+
+
+def _gen_picture():
+    pass
 
 
 def _calc_delta(device_pic, image):
@@ -35,7 +57,7 @@ def _calc_delta(device_pic, image):
     d_answer = cuda.to_device(answer)
 
     # Set the number of threads in a block
-    TPB = 32
+    TPB = 30
     # threadsperblock = (TPB, TPB, 1)
     threadsperblock = (TPB, 1)
 

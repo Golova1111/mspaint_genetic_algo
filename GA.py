@@ -2,21 +2,23 @@ import random
 import time
 
 import numpy as np
+
 from matplotlib import image, pyplot as plt
 from Picture import Picture
-from Rectangle import Rectangle
 
 
 class GeneticAlgo:
-    POPULATION_SIZE = PS = 250
+    POPULATION_SIZE = PS = 150
     EPOCHS = 301
-    PART_OF_POPULATION = PoP = 8
-    MAX_RESULT_STABLE = 8
+    PART_OF_POPULATION = PoP = 3
+    MAX_RESULT_STABLE = 6
 
-    def __init__(self, picture, fignum, prev_winner):
+    def __init__(self, picture, d_picture, fignum, prev_winner):
         self.picture = picture
+        self.d_picture = d_picture
         self.fignum = fignum
         self.prev_winner = prev_winner
+        self.results = []
 
         # self.POPULATION_SIZE = 30 * self.fignum
 
@@ -40,13 +42,14 @@ class GeneticAlgo:
 
         for epoch in range(self.EPOCHS):
             # score = self.population_result()
-            sorted_population = sorted(self.population, key=lambda x: x.score(self.picture))
+            sorted_population = sorted(self.population, key=lambda x: x.score(self.d_picture))
             best_population = sorted_population[: self.PS // self.PoP]
 
-            best_round_score = best_population[0].delta(self.picture)
+            best_round_score = best_population[0].score(self.d_picture)
+            self.results.append(best_round_score)
 
             if epoch and epoch % 100 == 0:
-                self.visualize(best_population, title=(
+                self.visualize(self.population, title=(
                     f"Epoch {epoch}, "
                     f"delta: {best_round_score}, "
                     f"fig: {len(best_population[0].parts)}, "
@@ -61,55 +64,33 @@ class GeneticAlgo:
                 #     )
                 # )
 
+            if epoch > 10:
+                delta = self.results[epoch] / self.results[epoch - 10]
+            else:
+                delta = 0
+
             if best_round_score < best_score:
                 not_changes_in_results = 0
                 best_elem = best_population[0]
                 best_score = best_round_score
 
-                print(f"Epoch {epoch}: best_score: {best_score}, improved")
+                print(f"Epoch {epoch}: best_score: {best_score}, improved, time: {time.time() - start_time}, delta {delta}")
 
             else:
                 not_changes_in_results += 1
-                print(f"Epoch {epoch}: best_score: {best_score}, remain the same")
-
-            if not_changes_in_results > self.MAX_RESULT_STABLE - 2:
-                # if works bad: try to hard-reboot the game
-                self.generate_similar(best_elem)
+                print(f"Epoch {epoch}: best_score: {best_score}, remain the same, time: {time.time() - start_time}, delta {delta}")
 
             if not_changes_in_results > self.MAX_RESULT_STABLE and epoch > self.cold_start:
                 return best_elem, best_score
 
-            # best-population-approach
-            # for num, elem in enumerate(best_population):
-            #     self.population[num] = elem
-            #
-            #     for cp in range(1, self.PART_OF_POPULATION):
-            #         if random.random() < 0.5:
-            #             curr_result = elem.delta(self.picture)
-            #             s = 0
-            #             while s < 3:
-            #                 self.population[cp * self.PS // self.PoP + num] = Picture.full_mutate(
-            #                     elem
-            #                 )
-            #                 new_result = self.population[cp * self.PS // self.PoP + num].delta(self.picture)
-            #
-            #                 if new_result < curr_result:
-            #                     break
-            #                 s += 1
-            #             else:
-            #                 self.population[cp * self.PS // self.PoP + num] = self.crossover(
-            #                     *random.sample(best_population, k=2)
-            #                 )
-            #         else:
-            #             self.population[cp * self.PS // self.PoP + num] = self.crossover(
-            #                 *random.sample(best_population, k=2)
-            #             )
+            if epoch > self.cold_start and delta > 0.9995:
+                return best_elem, best_score
 
             for num, elem in enumerate(self.population):
                 s = 0
-                while s < max(5, self.fignum):
+                while s < max(10, self.fignum):
                     mutate_element = Picture.full_mutate(elem)
-                    if mutate_element.score(self.picture) < elem.score(self.picture):
+                    if mutate_element.score(self.d_picture) < elem.score(self.d_picture):
                         self.population[num] = mutate_element
                         break
                     s += 1
@@ -117,7 +98,7 @@ class GeneticAlgo:
                     s = 0
                     while s < max(3, self.fignum // 2):
                         mutate_element = self.crossover(elem, random.choice(best_population))
-                        if mutate_element.score(self.picture) < elem.score(self.picture):
+                        if mutate_element.score(self.d_picture) < elem.score(self.d_picture):
                             self.population[num] = mutate_element
                             break
                         s += 1
@@ -148,7 +129,7 @@ class GeneticAlgo:
         ]
         self.population[0] = prev_winner
         self.population = sorted(
-            self.population, key=lambda x: x.score(self.picture)
+            self.population, key=lambda x: x.score(self.d_picture)
         )[:self.POPULATION_SIZE]
 
     def visualize(self, best_population, title=None):
