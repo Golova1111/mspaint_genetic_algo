@@ -1,4 +1,6 @@
-from Picture import Color, Picture, Rectangle, get_similar_color
+from Picture import Picture
+from Color import Color, get_similar_color
+from Rectangle import Rectangle
 
 c = Color()
 
@@ -13,16 +15,18 @@ def test_picture():
     p = Picture(size=(240, 320))
 
     p.parts.append(
-        Rectangle(p1=(100, 100), p2=(200, 200), color=c.RED),
+        # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
+        Rectangle.gen_random(size=(240, 320))
     )
-    p.parts.append(
-        Rectangle(p1=(0, 0), p2=(100, 200), color=c.DARKGREEN),
-    )
+    # p.parts.append(
+    #     Rectangle(p1=(0, 0), p2=(100, 200), color=c.DARKGREEN),
+    # )
 
+    p.gen_picture()
     p.visualize()
 
-    p.mutate()
-    p.visualize()
+    # p.mutate()
+    # p.visualize()
 
 
 def main():
