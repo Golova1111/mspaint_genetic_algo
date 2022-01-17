@@ -83,3 +83,12 @@ def get_similar_color(color):
     delta = delta / np.sum(delta)
 
     return Color.ALL[np.random.choice(Color.ALL.shape[0], p=delta)]
+
+
+def get_color(color, delta):
+    amount = delta * 15
+    return np.array([
+        min(max(0, color[0] + amount), 255),
+        min(max(0, color[1] + amount), 255),
+        min(max(0, color[2] + amount), 255),
+    ])

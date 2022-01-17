@@ -32,15 +32,22 @@ def test_picture():
     p.gen_picture()
     p.visualize()
 
-    p.parts[0] = p.parts[0]._rectangle_mutate()
+    # print(p.parts[0].color)
+    # print(p.parts[0].color_delta)
+    # p.parts[0]._color_mutate()
+    # print( ' ---------- ')
+    # print(p.parts[0].color)
+    # print(p.parts[0].color_delta)
+    p.parts[0].color_delta = -3
     p.gen_picture()
     # p.mutate()
     p.visualize()
 
-    p.parts[0] = p.parts[0]._ellipse_mutate()
+    p.parts[0].color_delta = 3
     p.gen_picture()
     # p.mutate()
     p.visualize()
+
 
 def main():
     test_picture()

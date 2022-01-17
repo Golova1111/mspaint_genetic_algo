@@ -2,10 +2,11 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c
+from Color import Color, get_similar_color, c, get_color
+from Figures.Figure import Figure
 
 
-class Triangle:
+class Triangle(Figure):
     MUTATION_POSITION_PROB = 0.25
     MUTATION_COLOR_PROB = 0.1
     MUTATION_POSITION_SCALE = 15
@@ -41,11 +42,13 @@ class Triangle:
         # All the signs must be positive or all negative
         return (side_1 < 0.0) == (side_2 < 0.0) == (side_3 < 0.0)
 
-    def __init__(self, p1, p2, p3, color, max_size):
+    def __init__(self, p1, p2, p3, color, max_size, color_delta=0):
         self.p1 = list(p1)
         self.p2 = list(p2)
         self.p3 = list(p3)
         self.color = color
+        self.color_delta = color_delta
+        self._repr_color = get_color(self.color, self.color_delta)
 
         self.max_h = max_size[0]
         self.max_w = max_size[1]
@@ -108,7 +111,7 @@ class Triangle:
         # self.p3[1] = min(self.max_w, self.p3[1])
 
         if random.random() < self.MUTATION_COLOR_PROB:
-            self.color = get_similar_color(self.color)
+            self._color_mutate()
 
         return self
 
@@ -140,10 +143,17 @@ class Triangle:
         self._repr[4] = self.p2[1]
         self._repr[5] = self.p3[0]
         self._repr[6] = self.p3[1]
-        self._repr[7:10] = self.color
+        self._repr[7:10] = self._repr_color
         return self._repr
 
     def __repr__(self):
         return (
-            f"Triangle(p1={self.p1}, p2={self.p2}, p3={self.p3}, color=np.array({self.color}), max_size=({self.max_h}, {self.max_w}))"
+            f"Triangle("
+            f"p1={self.p1}, "
+            f"p2={self.p2}, "
+            f"p3={self.p3}, "
+            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color_delta={self.color_delta}, "
+            f"max_size=({self.max_h}, {self.max_w})"
+            f")"
         )
