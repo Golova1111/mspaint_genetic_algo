@@ -50,7 +50,7 @@ class Triangle:
         self.max_h = max_size[0]
         self.max_w = max_size[1]
 
-        self._repr = np.zeros(9)
+        self._repr = np.zeros(10)
 
     def add_part(self, picture):
         xs = np.linspace(0, self.max_h, num=self.max_h)
@@ -140,7 +140,8 @@ class Triangle:
         self._repr[4] = self.p2[1]
         self._repr[5] = self.p3[0]
         self._repr[6] = self.p3[1]
-        self._repr[7:9] = self.color
+        self._repr[7:10] = self.color
+        return self._repr
 
     def __repr__(self):
         return (

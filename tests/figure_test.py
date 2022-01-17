@@ -16,14 +16,14 @@ def test_color_similarity():
 def test_picture():
     p = Picture(size=(240, 320))
 
-    p.parts.append(
-        # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
-        Rectangle.gen_random(size=(240, 320))
-    )
+    # p.parts.append(
+    #     # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
+    #     Rectangle.gen_random(size=(240, 320))
+    # )
     p.parts.append(
         # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
         # Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=c.RED, max_size=(240, 320))
-        Ellipse(center=(100, 100), a=20, b=20, color=c.RED, max_size=(240, 320))
+        Ellipse(center=(100, 100), a=50, b=50, color=c.RED, max_size=(240, 320))
     )
     # p.parts.append(
     #     Rectangle(p1=(0, 0), p2=(100, 200), color=c.DARKGREEN),
@@ -32,10 +32,15 @@ def test_picture():
     p.gen_picture()
     p.visualize()
 
-    p.parts[1].mutate()
-    p.mutate()
+    p.parts[0] = p.parts[0]._rectangle_mutate()
+    p.gen_picture()
+    # p.mutate()
     p.visualize()
 
+    p.parts[0] = p.parts[0]._ellipse_mutate()
+    p.gen_picture()
+    # p.mutate()
+    p.visualize()
 
 def main():
     test_picture()

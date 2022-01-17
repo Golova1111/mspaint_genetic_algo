@@ -9,7 +9,7 @@ import numpy as np
 from Figures.Ellipse import Ellipse
 from Figures.Rectangle import Rectangle
 from Figures.Triangle import Triangle
-from cuda import _calc_delta
+from cuda import _calc_delta, _gen_picture
 
 
 class Picture:
@@ -31,6 +31,11 @@ class Picture:
         ) + 255
 
     def gen_picture(self):
+        self.picture[:, :, :] = 255
+        _gen_picture(self)
+        return self.picture
+
+    def _old_gen_picture(self):
         self.picture[:, :, :] = 255
 
         for elem in self.parts:
@@ -140,11 +145,15 @@ class Picture:
         p = cls(size=icon_picture.size, max_fignum=max_fignum)
         p.parts = copy.deepcopy(icon_picture.parts)
 
-        for i in range(max_fignum - len(icon_picture.parts)):
+        random_add_count = random.randint(
+            0, max_fignum - len(icon_picture.parts)
+        )
+
+        for i in range(random_add_count):
             p.add_random_figure(gp=False, last=True)
 
-        for i in range(random.randint(0, max_fignum)):
-           p.mutate(gp=False)
+        for i in range(max(random.randint(0, max_fignum), 3)):
+            p.mutate(gp=False)
 
         p.gen_picture()
         return p

@@ -8,9 +8,10 @@ from Color import Color, get_similar_color, c
 class Ellipse:
     MUTATION_POSITION_PROB = 0.25
     MUTATION_COLOR_PROB = 0.1
+    MUTATION_RECTANGLE_PROBABILITY = 0.03
     MUTATION_POSITION_SCALE = 15
 
-    CUDA_FIGURE_ID = 0
+    CUDA_FIGURE_ID = 2
 
     def __init__(self, center, a, b, color, max_size):
         self.center = list(center)
@@ -21,7 +22,7 @@ class Ellipse:
         self.max_h = max_size[0]
         self.max_w = max_size[1]
 
-        self._repr = np.zeros(9)
+        self._repr = np.zeros(10)
 
     def add_part(self, picture):
         xs = np.linspace(0, self.max_h, num=self.max_h)
@@ -60,7 +61,20 @@ class Ellipse:
         if random.random() < self.MUTATION_COLOR_PROB:
             self.color = get_similar_color(self.color)
 
+        if random.random() < self.MUTATION_RECTANGLE_PROBABILITY:
+            return self._rectangle_mutate()
+
         return self
+
+    def _rectangle_mutate(self):
+        from Figures.Rectangle import Rectangle
+
+        return Rectangle(
+            p1=(self.center[0] - self.a, self.center[1] - self.b),
+            p2=(self.center[0] + self.a, self.center[1] + self.b),
+            color=self.color,
+            max_size=(self.max_h, self.max_w)
+        )
 
     @classmethod
     def gen_random(cls, size):
@@ -84,7 +98,8 @@ class Ellipse:
         self._repr[2] = self.center[1]
         self._repr[3] = self.a
         self._repr[4] = self.b
-        self._repr[5:7] = self.color
+        self._repr[5:8] = self.color
+        return self._repr
 
     def __repr__(self):
         return (
