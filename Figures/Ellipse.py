@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -7,14 +8,15 @@ from Figures.Figure import Figure
 
 
 class Ellipse(Figure):
-    MUTATION_POSITION_PROB = 0.25
+    MUTATION_POSITION_PROB = 0.15
+    MUTATION_ROTATE_PROB = 0.15
     MUTATION_COLOR_PROB = 0.1
     MUTATION_RECTANGLE_PROBABILITY = 0.03
-    MUTATION_POSITION_SCALE = 15
 
+    MUTATION_POSITION_SCALE = 15
     CUDA_FIGURE_ID = 2
 
-    def __init__(self, center, a, b, color, max_size, color_delta=0):
+    def __init__(self, center, a, b, color, max_size, angle, color_delta=0):
         self.center = list(center)
         self.a = a
         self.b = b
@@ -24,6 +26,7 @@ class Ellipse(Figure):
 
         self.max_h = max_size[0]
         self.max_w = max_size[1]
+        self.angle = angle
 
         self._repr = np.zeros(10)
 
@@ -49,6 +52,9 @@ class Ellipse(Figure):
             self.a = int(self.a + deltas[2])
         if random.random() < self.MUTATION_POSITION_PROB:
             self.b = int(self.b + deltas[3])
+
+        if random.random() < self.MUTATION_ROTATE_PROB:
+            self._angle_mutate()
 
         self.center[0] = max(0, self.center[0])
         self.center[1] = max(0, self.center[1])
@@ -77,6 +83,7 @@ class Ellipse(Figure):
             p2=(self.center[0] + self.a, self.center[1] + self.b),
             color=self.color,
             color_delta=self.color_delta,
+            angle=self.angle,
             max_size=(self.max_h, self.max_w)
         )
 
@@ -87,11 +94,13 @@ class Ellipse(Figure):
 
         h1 = random.randint(0, h)
         w1 = random.randint(0, w)
+        angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Ellipse(
             center=(h1, w1),
             a=random.randint(5, h // 2),
             b=random.randint(5, w // 2),
+            angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
         )
@@ -103,6 +112,7 @@ class Ellipse(Figure):
         self._repr[3] = self.a
         self._repr[4] = self.b
         self._repr[5:8] = self._repr_color
+        self._repr[9] = self.angle
         return self._repr
 
     def __repr__(self):
@@ -113,6 +123,7 @@ class Ellipse(Figure):
             f"b={self.b}, "
             f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
             f"color_delta={self.color_delta}, "
+            f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"
             f")"
         )

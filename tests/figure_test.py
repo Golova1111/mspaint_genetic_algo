@@ -21,9 +21,9 @@ def test_picture():
     #     Rectangle.gen_random(size=(240, 320))
     # )
     p.parts.append(
-        # Rectangle(p1=(200, 200), p2=(100, 100), color=c.RED),
+        Rectangle(p1=(100, 100), p2=(200, 200), angle=0, color=c.RED, max_size=(240, 320)),
         # Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=c.RED, max_size=(240, 320))
-        Ellipse(center=(100, 100), a=50, b=50, color=c.RED, max_size=(240, 320))
+        # Ellipse(center=(100, 100), a=10, b=50, color=c.RED, max_size=(240, 320), angle=0)
     )
     # p.parts.append(
     #     Rectangle(p1=(0, 0), p2=(100, 200), color=c.DARKGREEN),
@@ -38,15 +38,19 @@ def test_picture():
     # print( ' ---------- ')
     # print(p.parts[0].color)
     # print(p.parts[0].color_delta)
-    p.parts[0].color_delta = -3
-    p.gen_picture()
+    # p.parts[0].color_delta = -3
+    # p.gen_picture()
     # p.mutate()
+
+    p.parts[0]._angle_mutate()
+    # p.parts[0].mutate()
+    p.gen_picture()
     p.visualize()
 
-    p.parts[0].color_delta = 3
-    p.gen_picture()
+    # p.parts[0].color_delta = 3
+    # p.gen_picture()
     # p.mutate()
-    p.visualize()
+    # p.visualize()
 
 
 def main():

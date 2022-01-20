@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -7,18 +8,20 @@ from Figures.Figure import Figure
 
 
 class Rectangle(Figure):
-    MUTATION_POSITION_PROB = 0.25
+    MUTATION_POSITION_PROB = 0.15
     MUTATION_COLOR_PROB = 0.1
     MUTATION_POSITION_SCALE = 15
+    MUTATION_ROTATE_PROB = 0.15
     MUTATION_ELLIPSE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 0
 
-    def __init__(self, p1, p2, color, max_size, color_delta=0):
+    def __init__(self, p1, p2, color, max_size, angle, color_delta=0):
         self.p1 = list(p1)
         self.p2 = list(p2)
         self.color = color
         self.color_delta = color_delta
+        self.angle = angle
         self._repr_color = get_color(self.color, self.color_delta)
 
         self.max_h = max_size[0]
@@ -59,6 +62,9 @@ class Rectangle(Figure):
         if random.random() < self.MUTATION_COLOR_PROB:
             self._color_mutate()
 
+        if random.random() < self.MUTATION_ROTATE_PROB:
+            self._angle_mutate()
+
         if random.random() < self.MUTATION_ELLIPSE_PROBABILITY:
             return self._ellipse_mutate()
 
@@ -79,6 +85,7 @@ class Rectangle(Figure):
             b=b,
             color=self.color,
             color_delta=self.color_delta,
+            angle=self.angle,
             max_size=(self.max_h, self.max_w)
         )
 
@@ -91,21 +98,24 @@ class Rectangle(Figure):
         h2 = random.randint(0, h)
         w1 = random.randint(0, w)
         w2 = random.randint(0, w)
+        angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Rectangle(
             p1=(min(h1, h2), min(w1, w2)),
             p2=(max(h1, h2), max(w1, w2)),
+            angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
         )
 
     def _get_repr(self):
         self._repr[0] = self.CUDA_FIGURE_ID
-        self._repr[1] = self.p1[0]
-        self._repr[2] = self.p1[1]
-        self._repr[3] = self.p2[0]
-        self._repr[4] = self.p2[1]
+        self._repr[1] = int(self.p1[0])
+        self._repr[2] = int(self.p1[1])
+        self._repr[3] = int(self.p2[0])
+        self._repr[4] = int(self.p2[1])
         self._repr[5:8] = self._repr_color
+        self._repr[9] = self.angle
         return self._repr
 
 
@@ -116,6 +126,7 @@ class Rectangle(Figure):
             f"p2={self.p2}, "
             f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
             f"color_delta={self.color_delta}, "
+            f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"
             f")"
         )
