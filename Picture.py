@@ -16,7 +16,7 @@ class Picture:
     MUTATION_SWAP_PROBABILITY = 0.15
     FIGURE_ADD_PROBABILITY = FIGURE_REMOVE_PROBABILITY = 0.25
 
-    def __init__(self, size, picture=None, max_fignum=100):
+    def __init__(self, size, d_picture, max_fignum=100):
         self.size = size
         self.w = size[0]
         self.h = size[1]
@@ -25,6 +25,7 @@ class Picture:
 
         self._score = None
         self.parts = []
+        self.d_picture = d_picture
 
         self.picture = np.zeros(
             (self.w, self.h, 3), dtype=np.int16
@@ -106,8 +107,11 @@ class Picture:
             self.gen_picture()
 
     def mutate(self, gp=True):
-        for elem in random.choices(self.parts, k=random.randint(1, min(3, len(self.parts)))):
-            elem.mutate()
+        k = random.randint(1, min(4, len(self.parts)))
+        mutate_elem_idx = random.choices(range(len(self.parts)), k=k)
+
+        for idx in mutate_elem_idx:
+            self.parts[idx] = self.parts[idx].mutate()
 
         if random.random() < self.MUTATION_SWAP_PROBABILITY:
             self._swap_random(gp=False)
@@ -124,16 +128,16 @@ class Picture:
 
     @classmethod
     def full_mutate(cls, pic):
-        new_pic = Picture(size=pic.size, picture=pic)
+        new_pic = Picture(size=pic.size, d_picture=pic.d_picture)
         new_pic.parts = copy.deepcopy(pic.parts)
         new_pic.max_fignum = pic.max_fignum
         return new_pic.mutate()
 
     @classmethod
-    def generate_default(cls, picture, max_fignum):
+    def generate_default(cls, picture, d_picture, max_fignum):
         START_FIG_NUMBER = max_fignum
 
-        p = cls(size=picture.shape[:2], max_fignum=max_fignum)
+        p = cls(size=picture.shape[:2], max_fignum=max_fignum, d_picture=d_picture)
         for i in range(START_FIG_NUMBER):
             p.add_random_figure(gp=False)
 
@@ -142,18 +146,16 @@ class Picture:
 
     @classmethod
     def generate_similar(cls, icon_picture, max_fignum):
-        p = cls(size=icon_picture.size, max_fignum=max_fignum)
+        p = cls(size=icon_picture.size, max_fignum=max_fignum, d_picture=icon_picture.d_picture)
         p.parts = copy.deepcopy(icon_picture.parts)
 
         random_add_count = random.randint(
-            0, max_fignum - len(icon_picture.parts)
+            1, max_fignum - len(icon_picture.parts)
         )
 
         for i in range(random_add_count):
             p.add_random_figure(gp=False, last=True)
 
-        for i in range(max(random.randint(0, max_fignum), 3)):
-            p.mutate(gp=False)
-
+        p.mutate(gp=False)
         p.gen_picture()
         return p

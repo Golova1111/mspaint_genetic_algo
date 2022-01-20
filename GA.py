@@ -20,11 +20,22 @@ class GeneticAlgo:
         self.prev_winner = prev_winner
         self.results = []
 
+        if self.fignum < 5:
+            self.stop_increase = 0.987
+        elif self.fignum < 12:
+            self.stop_increase = 0.993
+        else:
+            self.stop_increase = 0.999
+
         # self.POPULATION_SIZE = 30 * self.fignum
 
         if not prev_winner:
             self.population = [
-                Picture.generate_default(self.picture, max_fignum=self.fignum)
+                Picture.generate_default(
+                    self.picture,
+                    d_picture=self.d_picture,
+                    max_fignum=self.fignum
+                )
                 for _ in range(self.POPULATION_SIZE)
             ]
             self.cold_start = 0
@@ -83,7 +94,7 @@ class GeneticAlgo:
             if not_changes_in_results > self.MAX_RESULT_STABLE and epoch > self.cold_start:
                 return best_elem, best_score
 
-            if epoch > self.cold_start and delta > 0.9995:
+            if epoch > self.cold_start and delta > self.stop_increase:
                 return best_elem, best_score
 
             for num, elem in enumerate(self.population):
@@ -107,7 +118,7 @@ class GeneticAlgo:
 
     @staticmethod
     def crossover(elem1, elem2):
-        p = Picture(size=elem1.size, max_fignum=elem1.max_fignum)
+        p = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
         min_parts_len = min(
             len(elem1.parts),
             len(elem2.parts)
@@ -125,7 +136,9 @@ class GeneticAlgo:
     def generate_similar(self, prev_winner):
         self.population = [
             Picture.generate_similar(self.prev_winner, max_fignum=self.fignum)
-            for _ in range(2 * self.fignum * self.POPULATION_SIZE)
+            for _ in range(
+                max(5 * self.fignum * self.POPULATION_SIZE, 12000)
+            )
         ]
         self.population[0] = prev_winner
         self.population = sorted(

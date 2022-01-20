@@ -142,4 +142,21 @@ def _gen_picture(picture):
 
     new_image = d_image.copy_to_host()
     picture.picture = new_image
+
+    # ============ instant score calculation
+    # =======================================
+
+    answer = np.zeros((picture.picture.shape[1] * 3), dtype=np.int64)
+    d_answer = cuda.to_device(answer)
+
+    # Calculate the number of thread blocks in the grid
+    blockspergrid_y = int(math.ceil(picture.picture.shape[1] / threadsperblock[0]))
+    blockspergrid_z = 3
+    threadsperblock = (TPB, 1)
+    blockspergrid = (blockspergrid_y, blockspergrid_z)
+
+    _calc_elem_delta[blockspergrid, threadsperblock](picture.d_picture, d_image, d_answer)
+    res = d_answer.copy_to_host()
+    picture._score = np.sum(res)
+
     return picture
