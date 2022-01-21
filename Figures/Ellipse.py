@@ -94,7 +94,7 @@ class Ellipse(Figure):
 
         h1 = random.randint(0, h)
         w1 = random.randint(0, w)
-        angle = (random.random() - 0.5) * (2 * math.pi)
+        angle = random.randint(0, 628)
 
         return Ellipse(
             center=(h1, w1),

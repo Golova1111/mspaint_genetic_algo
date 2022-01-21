@@ -45,11 +45,12 @@ class Picture:
         self._score = None
         return self.picture
 
-    def visualize(self, title=None):
+    def visualize(self, title=None, is_save=True):
         plt.imshow(self.picture, interpolation='nearest')
         if title:
             plt.title(title)
-        plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
+        if is_save:
+            plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
         plt.show()
 
     def delta(self, icon_picture):
@@ -127,11 +128,11 @@ class Picture:
         return self
 
     @classmethod
-    def full_mutate(cls, pic):
+    def full_mutate(cls, pic, gp=True):
         new_pic = Picture(size=pic.size, d_picture=pic.d_picture)
         new_pic.parts = copy.deepcopy(pic.parts)
         new_pic.max_fignum = pic.max_fignum
-        return new_pic.mutate()
+        return new_pic.mutate(gp=gp)
 
     @classmethod
     def generate_default(cls, picture, d_picture, max_fignum):

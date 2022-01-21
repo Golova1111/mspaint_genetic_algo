@@ -60,6 +60,28 @@ def _gen_elem_picture(curr_image, picture_rules):
         if rule[0] == 0:
             cx, cy = int((rule[1] + rule[3]) // 2), int((rule[2] + rule[4]) // 2)
 
+            # simple "big radius check"
+            r_big = (rule[1] - cx)**2 + (rule[2] - cy)**2
+            if (y - cx)**2 + (x - cy)**2 > r_big:
+                continue
+
+            # simple inner ellipse
+            # if (
+            #     ((y - cx) * math.cos(alpha) + (x - cy) * math.sin(alpha)) ** 2 / (rule[1] - cx)**2 +
+            #     ((y - cx) * math.sin(alpha) - (x - cy) * math.cos(alpha)) ** 2 / (rule[2] - cy)**2
+            #     < 1
+            # ):
+            #     curr_image[x, y, :] = rule[5], rule[6], rule[7]
+
+            # r_small = min(
+            #     (rule[1] - cx) ** 2,
+            #     (rule[2] - cy) ** 2
+            # )
+            #
+            # if (y - cx) ** 2 + (x - cy) ** 2 <= r_small:
+            #     curr_image[x, y, :] = rule[5], rule[6], rule[7]
+            #     continue
+
             # get rotated coordinates
             x0 = int((rule[1] - cx) * math.cos(alpha) - (rule[2] - cy) * math.sin(alpha) + cx)
             y0 = int((rule[1] - cx) * math.sin(alpha) + (rule[2] - cy) * math.cos(alpha) + cy)
@@ -80,14 +102,14 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if (side_1 == side_2 == side_3):
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
+            else:
+                # # triangle_second:
+                side_1 = (y - x1) * (y3 - y1) - (x3 - x1) * (x - y1) > 0
+                side_2 = (y - x0) * (y1 - y0) - (x1 - x0) * (x - y0) >= 0
+                side_3 = (y - x3) * (y0 - y3) - (x0 - x3) * (x - y3) > 0
 
-            # # triangle_second:
-            side_1 = (y - x1) * (y3 - y1) - (x3 - x1) * (x - y1) > 0
-            side_2 = (y - x0) * (y1 - y0) - (x1 - x0) * (x - y0) >= 0
-            side_3 = (y - x3) * (y0 - y3) - (x0 - x3) * (x - y3) > 0
-
-            if (side_1 == side_2 == side_3):
-                curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                if (side_1 == side_2 == side_3):
+                    curr_image[x, y, :] = rule[5], rule[6], rule[7]
 
         # -- Triangle
         if rule[0] == 1:
@@ -150,6 +172,7 @@ def _gen_picture(picture):
     d_answer = cuda.to_device(answer)
 
     # Calculate the number of thread blocks in the grid
+    TPB = 30
     blockspergrid_y = int(math.ceil(picture.picture.shape[1] / threadsperblock[0]))
     blockspergrid_z = 3
     threadsperblock = (TPB, 1)
@@ -160,3 +183,4 @@ def _gen_picture(picture):
     picture._score = np.sum(res)
 
     return picture
+
