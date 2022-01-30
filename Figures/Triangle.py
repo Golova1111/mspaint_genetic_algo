@@ -8,7 +8,7 @@ from Figures.Figure import Figure
 
 class Triangle(Figure):
     MUTATION_POSITION_PROB = 0.25
-    MUTATION_COLOR_PROB = 0.1
+    MUTATION_COLOR_PROB = 0.2
     MUTATION_POSITION_SCALE = 15
 
     CUDA_FIGURE_ID = 1

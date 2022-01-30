@@ -54,7 +54,7 @@ def _gen_elem_picture(curr_image, picture_rules):
     x, y = cuda.grid(2)
 
     for rule in picture_rules:
-        alpha = rule[9] / 100
+        alpha = rule[9]
 
         # -- Rectangle
         if rule[0] == 0:

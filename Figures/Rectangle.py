@@ -8,10 +8,10 @@ from Figures.Figure import Figure
 
 
 class Rectangle(Figure):
-    MUTATION_POSITION_PROB = 0.2
-    MUTATION_COLOR_PROB = 0.1
+    MUTATION_POSITION_PROB = 0.25
+    MUTATION_COLOR_PROB = 0.2
     MUTATION_POSITION_SCALE = 15
-    MUTATION_ROTATE_PROB = 0.15
+    MUTATION_ROTATE_PROB = 0.5
     MUTATION_ELLIPSE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 0
@@ -48,6 +48,16 @@ class Rectangle(Figure):
             self.p2[0] = int(self.p2[0] + deltas[2])
         if random.random() < self.MUTATION_POSITION_PROB:
             self.p2[1] = int(self.p2[1] + deltas[3])
+
+        self.p1[0] = max(0, self.p1[0])
+        self.p2[0] = max(0, self.p2[0])
+        self.p1[1] = max(0, self.p1[1])
+        self.p2[1] = max(0, self.p2[1])
+
+        self.p1[0] = min(self.max_h, self.p1[0])
+        self.p2[0] = min(self.max_h, self.p2[0])
+        self.p1[1] = min(self.max_w, self.p1[1])
+        self.p2[1] = min(self.max_w, self.p2[1])
 
         if random.random() < self.MUTATION_COLOR_PROB:
             self._color_mutate()
@@ -88,13 +98,14 @@ class Rectangle(Figure):
         h2 = random.randint(0, h)
         w1 = random.randint(0, w)
         w2 = random.randint(0, w)
-        angle = random.randint(0, 628)
+        angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Rectangle(
             p1=(min(h1, h2), min(w1, w2)),
             p2=(max(h1, h2), max(w1, w2)),
             angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            color_delta=random.randint(-9, 9),
             max_size=(h, w)
         )
 

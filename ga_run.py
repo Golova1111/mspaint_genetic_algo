@@ -65,7 +65,7 @@ def init(demo_pic):
         print("]")
 
         prev_winner.visualize(title=f"== BEST for {figures_number} figures, score {best_score} == ")
-        figures_number += figures_delta
+        figures_number = len(prev_winner.parts) + figures_delta
 
 
 # [
