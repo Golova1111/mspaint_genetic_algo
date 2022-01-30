@@ -60,6 +60,11 @@ def _gen_elem_picture(curr_image, picture_rules):
         if rule[0] == 0:
             cx, cy = int((rule[1] + rule[3]) // 2), int((rule[2] + rule[4]) // 2)
 
+            # simple "big radius check"
+            r_big = (rule[1] - cx) ** 2 + (rule[2] - cy) ** 2
+            if (y - cx) ** 2 + (x - cy) ** 2 > r_big:
+                continue
+
             # get rotated coordinates
             x0 = int((rule[1] - cx) * math.cos(alpha) - (rule[2] - cy) * math.sin(alpha) + cx)
             y0 = int((rule[1] - cx) * math.sin(alpha) + (rule[2] - cy) * math.cos(alpha) + cy)
