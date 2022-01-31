@@ -90,7 +90,7 @@ class Rectangle(Figure):
         )
 
     @classmethod
-    def gen_random(cls, size):
+    def gen_random(cls, size, is_small=False):
         h = size[1]
         w = size[0]
 
@@ -102,6 +102,11 @@ class Rectangle(Figure):
 
         hsize = random.randint(5, h // 2)
         wsize = random.randint(5, w // 2)
+
+        if is_small:
+            hsize = hsize // 2
+            wsize = wsize // 2
+
         angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Rectangle(

@@ -80,10 +80,12 @@ class Picture:
             else:
                 position = random.randint(0, len(self.parts))
 
+            is_small = len(self.parts) > 15
+
             if random.random() < 0.5:
                 self.parts.insert(
                     position,
-                    Rectangle.gen_random(size=self.size)
+                    Rectangle.gen_random(size=self.size, is_small=is_small)
                 )
             elif random.random() < 0.5:
                 self.parts.insert(
@@ -93,7 +95,7 @@ class Picture:
             else:
                 self.parts.insert(
                     position,
-                    Ellipse.gen_random(size=self.size)
+                    Ellipse.gen_random(size=self.size, is_small=is_small)
                 )
 
             if gp:
@@ -108,8 +110,15 @@ class Picture:
             self.gen_picture()
 
     def mutate(self, gp=True):
-        k = random.randint(1, min(4, len(self.parts)))
-        mutate_elem_idx = random.choices(range(len(self.parts)), k=k)
+        figsize = len(self.parts)
+        k = random.randint(1, min(4, figsize))
+
+        if len(self.parts) < 10:
+            mutate_elem_idx = random.choices(range(figsize), k=k)
+        else:
+            mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=k)
+            mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
+            mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=k) + (figsize - 1)).astype(int)
 
         for idx in mutate_elem_idx:
             self.parts[idx] = self.parts[idx].mutate()
@@ -117,11 +126,11 @@ class Picture:
         if random.random() < self.MUTATION_SWAP_PROBABILITY:
             self._swap_random(gp=False)
 
-        if random.random() < self.FIGURE_ADD_PROBABILITY:
-            self.add_random_figure(gp=False)
-
         if random.random() < self.FIGURE_REMOVE_PROBABILITY:
             self.remove_random_figure(gp=False)
+
+        if random.random() < self.FIGURE_ADD_PROBABILITY:
+            self.add_random_figure(gp=False, last=True)
 
         if gp:
             self.gen_picture()
