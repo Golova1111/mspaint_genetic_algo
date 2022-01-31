@@ -123,7 +123,7 @@ def get_similar_color(color):
     delta = np.sum(
         np.abs(all_colors - color), axis=1
     )
-    delta[delta > np.percentile(delta, 15)] = 0
+    delta[delta > np.percentile(delta, 50)] = 0
     delta = 1 / delta
     delta[delta == np.inf] = 0
 

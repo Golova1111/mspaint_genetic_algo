@@ -8,9 +8,9 @@ from Figures.Figure import Figure
 
 
 class Ellipse(Figure):
-    MUTATION_POSITION_PROB = 0.25
-    MUTATION_ROTATE_PROB = 0.5
-    MUTATION_COLOR_PROB = 0.2
+    MUTATION_POSITION_PROB = 0.15
+    MUTATION_ROTATE_PROB = 0.15
+    MUTATION_COLOR_PROB = 0.15
     MUTATION_RECTANGLE_PROBABILITY = 0.03
 
     MUTATION_POSITION_SCALE = 15
@@ -79,14 +79,8 @@ class Ellipse(Figure):
         from Figures.Rectangle import Rectangle
 
         return Rectangle(
-            p1=(
-                max(min(0, self.center[0] - self.a), self.max_h),
-                max(min(0, self.center[1] - self.b), self.max_w),
-            ),
-            p2=(
-                max(min(0, self.center[0] + self.a), self.max_h),
-                max(min(0, self.center[1] + self.b), self.max_w),
-            ),
+            p1=(self.center[0] - self.a, self.center[1] - self.b),
+            p2=(self.center[0] + self.a, self.center[1] + self.b),
             color=self.color,
             color_delta=self.color_delta,
             angle=self.angle,

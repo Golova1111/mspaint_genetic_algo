@@ -8,10 +8,10 @@ from Figures.Figure import Figure
 
 
 class Rectangle(Figure):
-    MUTATION_POSITION_PROB = 0.25
-    MUTATION_COLOR_PROB = 0.2
+    MUTATION_POSITION_PROB = 0.15
+    MUTATION_COLOR_PROB = 0.15
     MUTATION_POSITION_SCALE = 15
-    MUTATION_ROTATE_PROB = 0.5
+    MUTATION_ROTATE_PROB = 0.15
     MUTATION_ELLIPSE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 0
@@ -105,7 +105,6 @@ class Rectangle(Figure):
             p2=(max(h1, h2), max(w1, w2)),
             angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
-            color_delta=random.randint(-9, 9),
             max_size=(h, w)
         )
 
