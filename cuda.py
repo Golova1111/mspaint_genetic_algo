@@ -85,6 +85,7 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if (side_1 == side_2 == side_3):
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                break
 
             # # triangle_second:
             side_1 = (y - x1) * (y3 - y1) - (x3 - x1) * (x - y1) > 0
@@ -93,6 +94,7 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if (side_1 == side_2 == side_3):
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                break
 
         # -- Triangle
         if rule[0] == 1:
@@ -106,6 +108,7 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if side_1 == side_2 == side_3:
                 curr_image[x, y, :] = rule[7], rule[8], rule[9]
+                break
 
         # -- Ellipse
         if rule[0] == 2:
@@ -119,13 +122,15 @@ def _gen_elem_picture(curr_image, picture_rules):
             )
             if mask:
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                break
 
 
 def _gen_picture(picture):
-    decoded_parts = np.zeros((len(picture.parts), 10))
+    lparts = len(picture.parts)
+    decoded_parts = np.zeros((lparts, 10))
 
     for i, part in enumerate(picture.parts):
-        decoded_parts[i] = part._get_repr()
+        decoded_parts[lparts - 1 - i] = part._get_repr()
 
     d_image = cuda.to_device(picture.picture)
     d_parts = cuda.to_device(decoded_parts)
