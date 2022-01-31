@@ -52,8 +52,25 @@ def test_picture_rectangle_generation():
     p.visualize(is_save=False)
 
 
+def test_picture_ellipse_generation():
+    picture = np.random.randint(low=0, high=255, size=(240, 320, 3), dtype=np.int16)
+    d_picture = cuda.to_device(picture)
+    p = Picture(size=(240, 320), d_picture=d_picture)
+
+    for x in range(50):
+        f = Ellipse.gen_random(size=(240, 320))
+        f.color = c.RED
+        f._color_mutate()
+
+        p.parts.append(f)
+        print(f)
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+
 def main():
-    test_picture_rectangle_generation()
+    test_picture_ellipse_generation()
 
 
 if __name__ == '__main__':

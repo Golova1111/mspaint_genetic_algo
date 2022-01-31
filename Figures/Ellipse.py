@@ -89,8 +89,8 @@ class Ellipse(Figure):
 
     @classmethod
     def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
         w1 = random.randint(0, w)
@@ -98,8 +98,8 @@ class Ellipse(Figure):
 
         return Ellipse(
             center=(h1, w1),
-            a=random.randint(5, h // 2),
-            b=random.randint(5, w // 2),
+            a=random.randint(5, h // 3),
+            b=random.randint(5, w // 3),
             angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
