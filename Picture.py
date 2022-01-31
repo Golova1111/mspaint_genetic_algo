@@ -54,8 +54,8 @@ class Picture:
         plt.show()
 
     def delta(self, icon_picture):
-        self._score = np.sum(np.abs(icon_picture - self.picture))
-        return self._score
+        # self._score = np.sum(np.abs(icon_picture - self.picture))
+        return np.sum(np.abs(icon_picture - self.picture))
 
     def score(self, d_icon_picture):
         if self._score:
@@ -116,9 +116,12 @@ class Picture:
         if len(self.parts) < 10:
             mutate_elem_idx = random.choices(range(figsize), k=k)
         else:
-            mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=k)
-            mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
-            mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=k) + (figsize - 1)).astype(int)
+            if random.random() < 0.65:
+                mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=k)
+                mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
+                mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=k) + (figsize - 1)).astype(int)
+            else:
+                mutate_elem_idx = random.choices(range(figsize), k=k)
 
         for idx in mutate_elem_idx:
             self.parts[idx] = self.parts[idx].mutate()
@@ -130,7 +133,7 @@ class Picture:
             self.remove_random_figure(gp=False)
 
         if random.random() < self.FIGURE_ADD_PROBABILITY:
-            self.add_random_figure(gp=False, last=True)
+            self.add_random_figure(gp=False)
 
         if gp:
             self.gen_picture()
@@ -164,7 +167,7 @@ class Picture:
         )
 
         for i in range(random_add_count):
-            p.add_random_figure(gp=False, last=True)
+            p.add_random_figure(gp=False)
 
         p.mutate(gp=False)
         p.gen_picture()

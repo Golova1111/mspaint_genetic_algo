@@ -9,12 +9,18 @@ from numba import cuda
 def _calc_elem_delta(curr_image, picture, answer):
     sum = 0
 
-    p, c = cuda.grid(2)
-    for x in range(curr_image.shape[0]):
-        sum += abs(picture[x, p, c] - curr_image[x, p, c])
+    x, y = cuda.grid(2)
+    picr, picg, picb = curr_image[x, y, :]
+    originr, origing, originb = picture[x, y, :]
 
-    # answer[p, c] = sum
-    answer[p + curr_image.shape[1] * c] = sum
+    if (originr + picr) / 2 < 128:
+        answer[x + curr_image.shape[0] * y] = math.sqrt(
+            2 * (originr - picr)**2 + 4 * (origing - picg)**2 + 3 * (originb - picb)**2
+        )
+    else:
+        answer[x + curr_image.shape[0] * y] = math.sqrt(
+            3 * (originr - picr) ** 2 + 4 * (origing - picg) ** 2 + 3 * (originb - picb) ** 2
+        )
 
 
 def _calc_delta(device_pic, image):
@@ -156,14 +162,14 @@ def _gen_picture(picture):
     # ============ instant score calculation
     # =======================================
 
-    answer = np.zeros((picture.picture.shape[1] * 3), dtype=np.int64)
+    answer = np.zeros((picture.picture.shape[0] * picture.picture.shape[1]), dtype=np.int64)
     d_answer = cuda.to_device(answer)
 
     # Calculate the number of thread blocks in the grid
+    blockspergrid_x = int(math.ceil(picture.picture.shape[0] / threadsperblock[0]))
     blockspergrid_y = int(math.ceil(picture.picture.shape[1] / threadsperblock[0]))
-    blockspergrid_z = 3
-    threadsperblock = (TPB, 1)
-    blockspergrid = (blockspergrid_y, blockspergrid_z)
+    threadsperblock = (TPB, TPB)
+    blockspergrid = (blockspergrid_x, blockspergrid_y)
 
     _calc_elem_delta[blockspergrid, threadsperblock](picture.d_picture, d_image, d_answer)
     res = d_answer.copy_to_host()

@@ -1,4 +1,5 @@
 import math
+import random
 import time
 
 import numpy as np
@@ -43,36 +44,38 @@ def score_test():
 
 def generate_test():
     c = 1
-    prev_winner = Picture(size=(360 * c, 480 * c))
+    picture = np.zeros(shape=(360 * c, 480 * c, 3), dtype=np.int16) + 50
+    d_picture = cuda.to_device(picture)
+    prev_winner = Picture(size=(360 * c, 480 * c), d_picture=d_picture)
     prev_winner.parts = [
-    #     Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c))
-    #     Rectangle(p1=[ 23 * c,  28 * c], p2=[324 * c, 480 * c], color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[ 17 * c,  99 * c], p2=[181 * c, 480 * c], color=np.array([174, 218, 234]), max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[ 88 * c, 183 * c], p2=[179 * c, 392 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[278 * c,   0 * c], p2=[360 * c, 480 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[  0 * c,   0 * c], p2=[ 14 * c, 480 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[216 * c,   0 * c], p2=[278 * c, 143 * c], color=np.array([196, 230, 48]),  max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[139 * c, 148 * c], p2=[181 * c, 423 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[102 * c,  28 * c], p2=[222 * c, 141 * c], color=np.array([255, 255, 255]), max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[269 * c,   0 * c], p2=[331 * c, 143 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[347 * c,   0 * c], p2=[360 * c, 480 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c)),
-    #     Rectangle(p1=[ 33 * c,  25 * c], p2=[101 * c,  98 * c], color=np.array([231, 129, 48]),  max_size=(360 * c, 480 * c)),
+         Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c)),
+         Rectangle(p1=[ 28 * c,  23 * c,], p2=[480 * c, 324 * c], color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[ 99 * c,  17 * c,], p2=[480 * c, 181 * c], color=np.array([174, 218, 234]), max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[183 * c,  88 * c,], p2=[392 * c, 179 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[  0 * c, 278 * c,], p2=[480 * c, 360 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[  0 * c,   0 * c,], p2=[480 * c,  14 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[  0 * c, 216 * c,], p2=[143 * c, 278 * c], color=np.array([196, 230, 48]),  max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[148 * c, 139 * c,], p2=[423 * c, 181 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[ 28 * c, 102 * c,], p2=[141 * c, 222 * c], color=np.array([255, 255, 255]), max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[  0 * c, 269 * c,], p2=[143 * c, 331 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[  0 * c, 347 * c,], p2=[480 * c, 360 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
+         Rectangle(p1=[ 25 * c,  33 * c,], p2=[ 98 * c, 101 * c], color=np.array([231, 129, 48]),  max_size=(360 * c, 480 * c), angle=0),
     ]
 
-    FIGURES = 1
-
-    for i in range(FIGURES):
-        prev_winner.parts.append(
-            Ellipse.gen_random(size=(360 * c, 480 * c))
-        )
-    for i in range(FIGURES):
-        prev_winner.parts.append(
-            Triangle.gen_random(size=(360 * c, 480 * c))
-        )
-    for i in range(FIGURES):
-        prev_winner.parts.append(
-            Rectangle.gen_random(size=(360 * c, 480 * c))
-        )
+    # FIGURES = 10
+    #
+    # for i in range(FIGURES):
+    #     prev_winner.parts.append(
+    #         Ellipse.gen_random(size=(360 * c, 480 * c))
+    #     )
+    # for i in range(FIGURES):
+    #     prev_winner.parts.append(
+    #         Triangle.gen_random(size=(360 * c, 480 * c))
+    #     )
+    # for i in range(FIGURES):
+    #     prev_winner.parts.append(
+    #         Rectangle.gen_random(size=(360 * c, 480 * c))
+    #     )
 
     # first "compilation" time
     _gen_picture(prev_winner)
@@ -80,14 +83,20 @@ def generate_test():
     start = time.time()
     _gen_picture(prev_winner)
     end = time.time()
+    print("cuda")
     print(end - start)
-    prev_winner.visualize()
+    prev_winner.visualize(is_save=False)
 
-    start = time.time()
-    prev_winner._old_gen_picture()
-    end = time.time()
-    print(end - start)
-    prev_winner.visualize()
+    # print("score:", prev_winner.score(d_icon_picture=d_picture))
+    # print("delta:", prev_winner.delta(icon_picture=picture))
+
+    # start = time.time()
+    # prev_winner._old_gen_picture()
+    # end = time.time()
+    # print("old style")
+    # print(end - start)
+    # prev_winner.visualize()
+
 
 
 if __name__ == '__main__':
