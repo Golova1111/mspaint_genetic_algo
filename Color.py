@@ -46,6 +46,29 @@ class Color:
         tuple(LIGHTVIOLET): "LIGHTVIOLET",
     }
 
+    _ALL_LIST = [
+        BLACK,
+        WHITE,
+        GRAY1,
+        GRAY2,
+        DARKRED,
+        BROWN,
+        RED,
+        PINK,
+        DARKORANGE,
+        ORANGE,
+        YELLOW,
+        LIGHTYELLOW,
+        DARKGREEN,
+        LIGHTGREEN,
+        BLUE,
+        LIGHTBLUE,
+        DARKBLUE,
+        DIRTYBLUE,
+        VIOLET,
+        LIGHTVIOLET
+    ]
+
     ALL = np.stack(
         [
             BLACK,
@@ -74,21 +97,41 @@ class Color:
 
 c = Color()
 
-
-def get_similar_color(color):
-    delta = np.sum(
-        np.abs(Color.ALL - color), axis=1
-    )
-    delta = np.abs(delta - np.max(delta))
-    delta = delta / np.sum(delta)
-
-    return Color.ALL[np.random.choice(Color.ALL.shape[0], p=delta)]
-
-
 def get_color(color, delta):
-    amount = delta * 15
+    amount = delta * 20
     return np.array([
         min(max(0, color[0] + amount), 255),
         min(max(0, color[1] + amount), 255),
         min(max(0, color[2] + amount), 255),
     ])
+
+
+color_hue_dict = {}
+color_hue_reverse_dict = {}
+
+for color in c._ALL_LIST:
+    for delta in range(-10, 10):
+        hue = get_color(color, delta)
+        if not color_hue_reverse_dict.get(tuple(hue)):
+            color_hue_dict[tuple(color), delta] = hue
+            color_hue_reverse_dict[tuple(hue)] = color, delta
+
+all_colors = np.stack(list(color_hue_dict.values()))
+
+
+def get_similar_color(color):
+    delta = np.sum(
+        np.abs(all_colors - color), axis=1
+    )
+    delta[delta > np.percentile(delta, 50)] = 0
+    delta = 1 / delta
+    delta[delta == np.inf] = 0
+
+    # delta[delta < np.percentile(delta, 10)] = 0
+    delta = delta / np.sum(delta)
+
+    return color_hue_reverse_dict[
+        tuple(
+            all_colors[np.random.choice(all_colors.shape[0], p=delta)]
+        )
+    ]

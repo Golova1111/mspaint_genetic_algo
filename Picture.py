@@ -45,11 +45,12 @@ class Picture:
         self._score = None
         return self.picture
 
-    def visualize(self, title=None):
+    def visualize(self, title=None, is_save=True):
         plt.imshow(self.picture, interpolation='nearest')
         if title:
             plt.title(title)
-        plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
+        if is_save:
+            plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
         plt.show()
 
     def delta(self, icon_picture):
