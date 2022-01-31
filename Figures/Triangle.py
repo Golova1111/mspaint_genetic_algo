@@ -117,8 +117,8 @@ class Triangle(Figure):
 
     @classmethod
     def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
         h2 = random.randint(0, h)
