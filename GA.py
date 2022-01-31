@@ -22,10 +22,16 @@ class GeneticAlgo:
 
         if self.fignum < 5:
             self.stop_increase = 0.987
+            self.POPULATION_SIZE = self.PS = 50
         elif self.fignum < 12:
             self.stop_increase = 0.993
+            self.POPULATION_SIZE = self.PS = 100
+        elif self.fignum < 18:
+            self.stop_increase = 0.998
+            self.POPULATION_SIZE = self.PS = 150
         else:
             self.stop_increase = 0.999
+            self.POPULATION_SIZE = self.PS = 150
 
         # self.POPULATION_SIZE = 30 * self.fignum
 

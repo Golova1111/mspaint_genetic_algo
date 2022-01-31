@@ -87,7 +87,13 @@ def test_picture_triangle_generation():
 
 
 def main():
-    test_picture_triangle_generation()
+    # test_picture_triangle_generation()
+    figsize = 12
+
+    mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=100)
+    mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
+    mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=100) + (figsize - 1)).astype(int)
+    print(mutate_elem_idx)
 
 
 if __name__ == '__main__':
