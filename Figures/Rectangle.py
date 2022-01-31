@@ -91,18 +91,22 @@ class Rectangle(Figure):
 
     @classmethod
     def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
-        h2 = random.randint(0, h)
         w1 = random.randint(0, w)
+
+        h2 = random.randint(0, h)
         w2 = random.randint(0, w)
+
+        hsize = random.randint(5, h // 2)
+        wsize = random.randint(5, w // 2)
         angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Rectangle(
-            p1=(min(h1, h2), min(w1, w2)),
-            p2=(max(h1, h2), max(w1, w2)),
+            p1=(h1, w1),
+            p2=(min(h1 + hsize, w), min(w1 + wsize, w)),
             angle=angle,
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
