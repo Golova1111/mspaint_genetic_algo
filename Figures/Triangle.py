@@ -7,9 +7,10 @@ from Figures.Figure import Figure
 
 
 class Triangle(Figure):
-    MUTATION_POSITION_PROB = 0.25
+    MUTATION_POSITION_PROB = 0.15
     MUTATION_COLOR_PROB = 0.15
     MUTATION_POSITION_SCALE = 15
+    MUTATION_RECTANGLE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 1
 
@@ -81,6 +82,9 @@ class Triangle(Figure):
         return picture
 
     def mutate(self):
+        if random.random() < self.MUTATION_RECTANGLE_PROBABILITY:
+            return self._rectangle_mutate()
+
         deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=6)
 
         if random.random() < self.MUTATION_POSITION_PROB:
@@ -134,6 +138,49 @@ class Triangle(Figure):
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
         )
+
+    def _rectangle_mutate(self):
+        from Figures.Rectangle import Rectangle
+
+        if random.random() < 0.4:
+            max_h = max(max(self.p1[0], self.p2[0]), self.p3[0])
+            min_h = min(min(self.p1[0], self.p2[0]), self.p3[0])
+
+            max_w = max(max(self.p1[1], self.p2[1]), self.p3[1])
+            min_w = min(min(self.p1[1], self.p2[1]), self.p3[1])
+
+            return Rectangle(
+                p1=(min_h, min_w),
+                p2=(max_h, max_w),
+                color=self.color,
+                color_delta=self.color_delta,
+                angle=0,
+                max_size=(self.max_h, self.max_w)
+            )
+        else:
+            c1 = random.random() / 2 + 0.25
+            c2 = random.random() / 2 + 0.25
+
+            if random.random() < 0.5:
+                p1_x = self.p1[0] + int(c1 * (self.p2[0] - self.p1[0]))
+                p1_y = self.p1[1] + int(c1 * (self.p2[1] - self.p1[1]))
+                p2_x = self.p2[0] + int(c2 * (self.p3[0] - self.p2[0]))
+                p2_y = self.p2[1] + int(c2 * (self.p3[1] - self.p2[1]))
+            else:
+                p1_x = self.p2[0] + int(c1 * (self.p3[0] - self.p2[0]))
+                p1_y = self.p2[1] + int(c1 * (self.p3[1] - self.p2[1]))
+                p2_x = self.p3[0] + int(c2 * (self.p1[0] - self.p3[0]))
+                p2_y = self.p3[1] + int(c2 * (self.p1[1] - self.p3[1]))
+
+            return Rectangle(
+                p1=(min(p1_x, p2_x), min(p1_y, p2_y)),
+                p2=(max(p1_x, p2_x), max(p1_y, p2_y)),
+                color=self.color,
+                color_delta=self.color_delta,
+                angle=0,
+                max_size=(self.max_h, self.max_w)
+            )
+
 
     def _get_repr(self):
         self._repr[0] = self.CUDA_FIGURE_ID

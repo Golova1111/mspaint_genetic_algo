@@ -86,14 +86,28 @@ def test_picture_triangle_generation():
     p.visualize(is_save=False)
 
 
+def test_triangle_rectangle_mutation():
+    picture = np.random.randint(low=0, high=255, size=(240, 320, 3), dtype=np.int16)
+    d_picture = cuda.to_device(picture)
+    p = Picture(size=(240, 320), d_picture=d_picture)
+
+    p.parts.append(
+        Triangle(p1=(100, 100), p2=(200, 200), p3=(50, 200), color=c.LIGHTBLUE, max_size=(240, 320)),
+    )
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+    p.parts[0] = p.parts[0]._rectangle_mutate()
+    print(p.parts[0])
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+
 def main():
     # test_picture_triangle_generation()
-    figsize = 12
-
-    mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=100)
-    mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
-    mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=100) + (figsize - 1)).astype(int)
-    print(mutate_elem_idx)
+    test_triangle_rectangle_mutation()
 
 
 if __name__ == '__main__':
