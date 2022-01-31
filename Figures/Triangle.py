@@ -120,21 +120,28 @@ class Triangle(Figure):
         return self
 
     @classmethod
-    def gen_random(cls, size):
+    def gen_random(cls, size, is_small=False):
         h = size[1]
         w = size[0]
 
         h1 = random.randint(0, h)
-        h2 = random.randint(0, h)
-        h3 = random.randint(0, h)
         w1 = random.randint(0, w)
-        w2 = random.randint(0, w)
-        w3 = random.randint(0, w)
+
+        if not is_small:
+            dh2 = random.randint(-h // 2, h // 2)
+            dw2 = random.randint(-w // 2, w // 2)
+            dh3 = random.randint(-h // 2, h // 2)
+            dw3 = random.randint(-w // 2, w // 2)
+        else:
+            dh2 = random.randint(-h // 4, h // 4)
+            dw2 = random.randint(-w // 4, w // 4)
+            dh3 = random.randint(-h // 4, h // 4)
+            dw3 = random.randint(-w // 4, w // 4)
 
         return Triangle(
             p1=(h1, w1),
-            p2=(h2, w2),
-            p3=(h3, w3),
+            p2=(h1 + dh2, w1 + dw2),
+            p3=(h1 + dh3, w1 + dw3),
             color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
             max_size=(h, w)
         )
