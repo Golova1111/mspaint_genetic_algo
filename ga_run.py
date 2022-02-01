@@ -6,9 +6,11 @@ d_picture = None
 
 
 def init(demo_pic):
-    figures_number = 1
+    figures_number = 2
     max_figures_number = 100
     figures_delta = 1
+
+    epoch = 1
 
     d_picture = cuda.to_device(demo_pic)
     prev_winner = None
@@ -56,8 +58,10 @@ def init(demo_pic):
                 break
 
         prev_best_score = best_score
+        figures_number = len(prev_winner.parts)
 
-        print(f"figures: {figures_number}, score: {best_score}")
+        print(f"epoch: {epoch}, figures: {figures_number}, score: {best_score}")
+        print(f"delta score: {prev_winner.delta(icon_picture=demo_pic)}")
 
         print("[")
         for elem in prev_winner.parts:
@@ -67,6 +71,7 @@ def init(demo_pic):
         prev_winner.visualize(title=f"== BEST for {figures_number} figures, score {best_score} == ")
         figures_number = len(prev_winner.parts) + figures_delta
 
+        epoch += 1
 
 # [
 #     Rectangle(p1=[23, 28], p2=[324, 480],   color=np.array([237, 229, 179]), max_size=(240, 320)),
