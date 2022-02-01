@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 
@@ -97,6 +99,7 @@ class Color:
 
 c = Color()
 
+
 def get_color(color, delta):
     amount = delta * 20
     return np.array([
@@ -114,9 +117,10 @@ for color in c._ALL_LIST:
         hue = get_color(color, delta)
         if not color_hue_reverse_dict.get(tuple(hue)):
             color_hue_dict[tuple(color), delta] = hue
-            color_hue_reverse_dict[tuple(hue)] = color, delta
+            color_hue_reverse_dict[tuple(hue)] = list(color), delta
 
 all_colors = np.stack(list(color_hue_dict.values()))
+all_colors_component_list = list(color_hue_reverse_dict.values())
 
 
 def get_similar_color(color):
@@ -135,3 +139,7 @@ def get_similar_color(color):
             all_colors[np.random.choice(all_colors.shape[0], p=delta)]
         )
     ]
+
+
+def get_random_color():
+    return random.choice(all_colors_component_list)

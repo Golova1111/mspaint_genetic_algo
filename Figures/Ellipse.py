@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color
+from Color import Color, get_similar_color, c, get_color, get_random_color
 from Figures.Figure import Figure
 
 
@@ -103,12 +103,15 @@ class Ellipse(Figure):
             a = a // 2
             b = b // 2
 
+        color, color_delta = get_random_color()
+
         return Ellipse(
             center=(h1, w1),
             a=a,
             b=b,
             angle=angle,
-            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            color=color,
+            color_delta=color_delta,
             max_size=(h, w)
         )
 
@@ -128,7 +131,7 @@ class Ellipse(Figure):
             f"center={self.center}, "
             f"a={self.a}, "
             f"b={self.b}, "
-            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color={self.color}, "
             f"color_delta={self.color_delta}, "
             f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"
