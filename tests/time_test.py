@@ -1,8 +1,11 @@
+import copy
 import math
+import pickle
 import random
 import time
 
 import numpy as np
+import ujson as ujson
 
 from numba import cuda
 
@@ -47,20 +50,20 @@ def generate_test():
     picture = np.zeros(shape=(360 * c, 480 * c, 3), dtype=np.int16) + 50
     d_picture = cuda.to_device(picture)
     prev_winner = Picture(size=(360 * c, 480 * c), d_picture=d_picture)
-    prev_winner.parts = [
-         Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c)),
-         Rectangle(p1=[ 28 * c,  23 * c,], p2=[480 * c, 324 * c], color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[ 99 * c,  17 * c,], p2=[480 * c, 181 * c], color=np.array([174, 218, 234]), max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[183 * c,  88 * c,], p2=[392 * c, 179 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[  0 * c, 278 * c,], p2=[480 * c, 360 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[  0 * c,   0 * c,], p2=[480 * c,  14 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[  0 * c, 216 * c,], p2=[143 * c, 278 * c], color=np.array([196, 230, 48]),  max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[148 * c, 139 * c,], p2=[423 * c, 181 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[ 28 * c, 102 * c,], p2=[141 * c, 222 * c], color=np.array([255, 255, 255]), max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[  0 * c, 269 * c,], p2=[143 * c, 331 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[  0 * c, 347 * c,], p2=[480 * c, 360 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
-         Rectangle(p1=[ 25 * c,  33 * c,], p2=[ 98 * c, 101 * c], color=np.array([231, 129, 48]),  max_size=(360 * c, 480 * c), angle=0),
-    ]
+    # prev_winner.parts = [
+    #      Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c)),
+    #      Rectangle(p1=[ 28 * c,  23 * c,], p2=[480 * c, 324 * c], color=np.array([237, 229, 179]), max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[ 99 * c,  17 * c,], p2=[480 * c, 181 * c], color=np.array([174, 218, 234]), max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[183 * c,  88 * c,], p2=[392 * c, 179 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[  0 * c, 278 * c,], p2=[480 * c, 360 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[  0 * c,   0 * c,], p2=[480 * c,  14 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[  0 * c, 216 * c,], p2=[143 * c, 278 * c], color=np.array([196, 230, 48]),  max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[148 * c, 139 * c,], p2=[423 * c, 181 * c], color=np.array([119, 1, 18]),    max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[ 28 * c, 102 * c,], p2=[141 * c, 222 * c], color=np.array([255, 255, 255]), max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[  0 * c, 269 * c,], p2=[143 * c, 331 * c], color=np.array([100, 177, 79]),  max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[  0 * c, 347 * c,], p2=[480 * c, 360 * c], color=np.array([0, 0, 0]),       max_size=(360 * c, 480 * c), angle=0),
+    #      Rectangle(p1=[ 25 * c,  33 * c,], p2=[ 98 * c, 101 * c], color=np.array([231, 129, 48]),  max_size=(360 * c, 480 * c), angle=0),
+    # ]
 
     # FIGURES = 10
     #
@@ -98,8 +101,52 @@ def generate_test():
     # prev_winner.visualize()
 
 
+def copy_test():
+    c = 1
+
+    parts = [
+        Triangle(p1=(50, 50), p2=(100, 100), p3=(50, 150), color=[237, 229, 179], max_size=(360 * c, 480 * c)),
+        Rectangle(p1=[28 * c, 23 * c, ], p2=[480 * c, 324 * c], color=[237, 229, 179], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[99 * c, 17 * c, ], p2=[480 * c, 181 * c], color=[174, 218, 234], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[183 * c, 88 * c, ], p2=[392 * c, 179 * c], color=[119, 1, 18], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[0 * c, 278 * c, ], p2=[480 * c, 360 * c], color=[100, 177, 79], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[0 * c, 0 * c, ], p2=[480 * c, 14 * c], color=[0, 0, 0], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[0 * c, 216 * c, ], p2=[143 * c, 278 * c], color=[196, 230, 48], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[148 * c, 139 * c, ], p2=[423 * c, 181 * c], color=[119, 1, 18], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[28 * c, 102 * c, ], p2=[141 * c, 222 * c], color=[255, 255, 255], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[0 * c, 269 * c, ], p2=[143 * c, 331 * c], color=[100, 177, 79], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[0 * c, 347 * c, ], p2=[480 * c, 360 * c], color=[0, 0, 0], max_size=(360 * c, 480 * c), angle=0),
+        Rectangle(p1=[25 * c, 33 * c, ], p2=[98 * c, 101 * c], color=[231, 129, 48], max_size=(360 * c, 480 * c), angle=0),
+    ]
+
+    start = time.time()
+    a = copy.deepcopy(parts)
+    end = time.time()
+    print((end - start) * 100)
+
+    print(a[0])
+    print(a[0] == parts[0])
+    a[0] = a[0].mutate()
+    print(a[0] == parts[0])
+
+    print()
+
+    start = time.time()
+    # b = copy.copy(parts)
+    b = pickle.loads(pickle.dumps(parts))
+    end = time.time()
+    print((end - start) * 100)
+
+    print(b[0])
+    print(b[0] == parts[0])
+    b[0] = b[0].mutate()
+    print(b[0] == parts[0])
+
+    print()
+
 
 if __name__ == '__main__':
     # score_test()
     # print(" ============== ")
-    generate_test()
+    # generate_test()
+    copy_test()

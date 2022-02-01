@@ -1,5 +1,6 @@
 import copy
 import datetime
+import pickle
 import random
 
 from matplotlib import pyplot as plt
@@ -145,7 +146,7 @@ class Picture:
     @classmethod
     def full_mutate(cls, pic, gp=True):
         new_pic = Picture(size=pic.size, d_picture=pic.d_picture)
-        new_pic.parts = copy.deepcopy(pic.parts)
+        new_pic.parts = pickle.loads(pickle.dumps(pic.parts))
         new_pic.max_fignum = pic.max_fignum
         return new_pic.mutate(gp=gp)
 
@@ -163,7 +164,7 @@ class Picture:
     @classmethod
     def generate_similar(cls, icon_picture, max_fignum):
         p = cls(size=icon_picture.size, max_fignum=max_fignum, d_picture=icon_picture.d_picture)
-        p.parts = copy.deepcopy(icon_picture.parts)
+        p.parts = pickle.loads(pickle.dumps(icon_picture.parts))
 
         random_add_count = random.randint(
             1, max_fignum - len(icon_picture.parts)
