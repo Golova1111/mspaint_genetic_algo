@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color
+from Color import Color, get_similar_color, c, get_color, get_random_color
 from Figures.Figure import Figure
 
 
@@ -97,11 +97,9 @@ class Rectangle(Figure):
         h1 = random.randint(0, h)
         w1 = random.randint(0, w)
 
-        h2 = random.randint(0, h)
-        w2 = random.randint(0, w)
-
         hsize = random.randint(5, h // 2)
         wsize = random.randint(5, w // 2)
+        color, color_delta = get_random_color()
 
         if is_small:
             hsize = hsize // 2
@@ -113,7 +111,8 @@ class Rectangle(Figure):
             p1=(h1, w1),
             p2=(min(h1 + hsize, w), min(w1 + wsize, w)),
             angle=angle,
-            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            color=color,
+            color_delta=color_delta,
             max_size=(h, w)
         )
 
@@ -133,7 +132,7 @@ class Rectangle(Figure):
             f"Rectangle("
             f"p1={self.p1}, "
             f"p2={self.p2}, "
-            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color={self.color}, "
             f"color_delta={self.color_delta}, "
             f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"
