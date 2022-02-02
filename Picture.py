@@ -84,7 +84,12 @@ class Picture:
                 else:
                     position = random.randint(0, len(self.parts))
 
-            is_small = len(self.parts) > 15
+            if len(self.parts) > 25:
+                is_small = 3
+            elif len(self.parts) > 15:
+                is_small = 2
+            else:
+                is_small = 0
 
             if random.random() < 0.5:
                 self.parts.insert(
@@ -94,7 +99,7 @@ class Picture:
             elif random.random() < 0.5:
                 self.parts.insert(
                     position,
-                    Triangle.gen_random(size=self.size, is_small=True)
+                    Triangle.gen_random(size=self.size, is_small=is_small)
                 )
             else:
                 self.parts.insert(
