@@ -110,8 +110,6 @@ class Rectangle(Figure):
             self.p2[1]
         ]
 
-        print(p1, p2, p3)
-
         asin, acos = math.sin(self.angle), math.cos(self.angle)
 
         x1 = int((p1[0] - cx) * acos - (p1[1] - cy) * asin + cx)
