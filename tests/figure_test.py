@@ -75,7 +75,7 @@ def test_picture_triangle_generation():
     p = Picture(size=(240, 320), d_picture=d_picture)
 
     for x in range(50):
-        f = Triangle.gen_random(size=(240, 320))
+        f = Triangle.gen_random(size=(240, 320), is_small=True)
         f.color = c.RED
         f._color_mutate()
 
@@ -105,9 +105,29 @@ def test_triangle_rectangle_mutation():
     p.visualize(is_save=False)
 
 
+def test_ellipse_triangle_mutation():
+    picture = np.random.randint(low=0, high=255, size=(240, 320, 3), dtype=np.int16)
+    d_picture = cuda.to_device(picture)
+    p = Picture(size=(240, 320), d_picture=d_picture)
+
+    p.parts.append(
+        Ellipse(center=(100, 100), a=60, b=30, angle=1.5, color=c.LIGHTBLUE, max_size=(240, 320)),
+    )
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+    p.parts[0] = p.parts[0]._triangle_mutate()
+    print(p.parts[0])
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+
 def main():
     # test_picture_triangle_generation()
-    test_triangle_rectangle_mutation()
+    # test_triangle_rectangle_mutation()
+    test_ellipse_triangle_mutation()
 
 
 if __name__ == '__main__':
