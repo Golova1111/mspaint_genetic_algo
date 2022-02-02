@@ -170,16 +170,27 @@ class GeneticAlgo:
         p2.gen_picture()
         return p1, p2
 
+    def generate_similar(self):
+        self.population = []
+        curr_winner = self.prev_winner
 
+        for i in range(25):
+            population_part = [
+                Picture.generate_similar(curr_winner, max_fignum=self.fignum)
+                for _ in range(1000)
+            ]
+            self.population += population_part
 
-    def generate_similar(self, prev_winner):
-        self.population = [
-            Picture.generate_similar(self.prev_winner, max_fignum=self.fignum)
-            for _ in range(
-                max(5 * self.fignum * self.POPULATION_SIZE, 3000)
+            self.population = sorted(
+                self.population, key=lambda x: x.score(self.d_picture)
             )
-        ]
-        self.population[0] = prev_winner
+
+            if self.population[0].score(self.d_picture) / curr_winner.score(self.d_picture) < 99.8 / 100:
+                break
+
+        if curr_winner.score(self.d_picture) < self.population[0].score(self.d_picture):
+            self.population[0] = curr_winner
+
         self.population = sorted(
             self.population, key=lambda x: x.score(self.d_picture)
         )[:self.POPULATION_SIZE]
