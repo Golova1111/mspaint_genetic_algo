@@ -134,10 +134,10 @@ class Triangle(Figure):
             dh3 = random.randint(-h // 2, h // 2)
             dw3 = random.randint(-w // 2, w // 2)
         else:
-            dh2 = random.randint(-h // 4, h // 4)
-            dw2 = random.randint(-w // 4, w // 4)
-            dh3 = random.randint(-h // 4, h // 4)
-            dw3 = random.randint(-w // 4, w // 4)
+            dh2 = random.randint(-h // (is_small * 2), h // (is_small * 2))
+            dw2 = random.randint(-w // (is_small * 2), w // (is_small * 2))
+            dh3 = random.randint(-h // (is_small * 2), h // (is_small * 2))
+            dw3 = random.randint(-w // (is_small * 2), w // (is_small * 2))
 
         return Triangle(
             p1=(h1, w1),

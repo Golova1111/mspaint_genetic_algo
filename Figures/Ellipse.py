@@ -133,8 +133,8 @@ class Ellipse(Figure):
         b = random.randint(5, w // 3)
 
         if is_small:
-            a = a // 2
-            b = b // 2
+            a = a // is_small
+            b = b // is_small
 
         color, color_delta = get_random_color()
 

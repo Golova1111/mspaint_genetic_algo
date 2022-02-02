@@ -102,8 +102,8 @@ class Rectangle(Figure):
         color, color_delta = get_random_color()
 
         if is_small:
-            hsize = hsize // 2
-            wsize = wsize // 2
+            hsize = hsize // is_small
+            wsize = wsize // is_small
 
         angle = (random.random() - 0.5) * (2 * math.pi)
 
