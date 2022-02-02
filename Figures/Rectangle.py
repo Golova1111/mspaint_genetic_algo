@@ -13,6 +13,7 @@ class Rectangle(Figure):
     MUTATION_POSITION_SCALE = 15
     MUTATION_ROTATE_PROB = 0.15
     MUTATION_ELLIPSE_PROBABILITY = 0.03
+    MUTATION_TRIANGLE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 0
 
@@ -38,6 +39,11 @@ class Rectangle(Figure):
         return picture
 
     def mutate(self):
+        if random.random() < self.MUTATION_ELLIPSE_PROBABILITY:
+            return self._ellipse_mutate()
+        if random.random() < self.MUTATION_TRIANGLE_PROBABILITY:
+            return self._triangle_mutate()
+
         deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=4)
 
         if random.random() < self.MUTATION_POSITION_PROB:
@@ -65,9 +71,6 @@ class Rectangle(Figure):
         if random.random() < self.MUTATION_ROTATE_PROB:
             self._angle_mutate()
 
-        if random.random() < self.MUTATION_ELLIPSE_PROBABILITY:
-            return self._ellipse_mutate()
-
         return self
 
     def _ellipse_mutate(self):
@@ -86,6 +89,46 @@ class Rectangle(Figure):
             color=self.color,
             color_delta=self.color_delta,
             angle=self.angle,
+            max_size=(self.max_h, self.max_w)
+        )
+
+    def _triangle_mutate(self):
+        from Figures.Triangle import Triangle
+
+        cx, cy = int((self.p1[0] + self.p2[0]) // 2), int((self.p1[1] + self.p2[1]) // 2)
+
+        p1 = [
+            random.randint(min(self.p1[0], self.p2[0]), max(self.p1[0], self.p2[0])),
+            self.p1[1]
+        ]
+        p2 = [
+            self.p2[0],
+            random.randint(min(self.p1[1], self.p2[1]), max(self.p1[1], self.p2[1])),
+        ]
+        p3 = [
+            random.randint(min(self.p1[0], self.p2[0]), max(self.p1[0], self.p2[0])),
+            self.p2[1]
+        ]
+
+        print(p1, p2, p3)
+
+        asin, acos = math.sin(self.angle), math.cos(self.angle)
+
+        x1 = int((p1[0] - cx) * acos - (p1[1] - cy) * asin + cx)
+        y1 = int((p1[0] - cx) * asin + (p1[1] - cy) * acos + cy)
+
+        x2 = int((p2[0] - cx) * acos - (p2[1] - cy) * asin + cx)
+        y2 = int((p2[0] - cx) * asin + (p2[1] - cy) * acos + cy)
+
+        x3 = int((p3[0] - cx) * acos - (p3[1] - cy) * asin + cx)
+        y3 = int((p3[0] - cx) * asin + (p3[1] - cy) * acos + cy)
+
+        return Triangle(
+            p1=[x1, y1],
+            p2=[x2, y2],
+            p3=[x3, y3],
+            color=self.color,
+            color_delta=self.color_delta,
             max_size=(self.max_h, self.max_w)
         )
 
