@@ -3,14 +3,13 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color, get_random_color
+from Color import get_color, get_random_color
 from Figures.Figure import Figure
 
 
 class Ellipse(Figure):
     MUTATION_POSITION_PROB = 0.15
     MUTATION_ROTATE_PROB = 0.15
-    MUTATION_COLOR_PROB = 0.15
     MUTATION_RECTANGLE_PROBABILITY = 0.03
     MUTATION_TRIANGLE_PROBABILITY = 0.03
 

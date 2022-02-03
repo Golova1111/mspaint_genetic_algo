@@ -21,13 +21,15 @@ def test_picture_color_mutation():
     d_picture = cuda.to_device(picture)
     p = Picture(size=(240, 320), d_picture=d_picture)
 
+    col = c.GRAY1
+
     p.parts.append(
-        Rectangle(p1=(100, 100), p2=(200, 200), angle=0, color=c.LIGHTBLUE, max_size=(240, 320)),
+        Rectangle(p1=(100, 100), p2=(200, 200), angle=0, color=col, max_size=(240, 320)),
     )
 
     for x in range(10):
         for y in range(10):
-            fig = Rectangle(p1=(10 * x, 10 * y), p2=(10 * (x + 1), 10 * (y + 1)), angle=0, color=c.LIGHTBLUE, max_size=(240, 320))
+            fig = Rectangle(p1=(10 * x, 10 * y), p2=(10 * (x + 1), 10 * (y + 1)), angle=0, color=col, max_size=(240, 320))
             fig._color_mutate()
             p.parts.append(fig)
 
@@ -143,11 +145,42 @@ def test_rectangle_triangle_mutation():
     p.visualize(is_save=False)
 
 
+def color_test():
+    picture = np.zeros(shape=(321, 321, 3), dtype=np.float)
+    d_picture = cuda.to_device(picture)
+    p = Picture(size=(321, 321), d_picture=d_picture)
+
+    i = 0
+
+    try:
+        for y in range(0, 32):
+            for x in range(0, 32):
+                # color, color_delta = all_colors_component_list[-i]
+                # print(color)
+
+                f = Rectangle.gen_random(size=(320, 320))
+                f.p1 = [10 * x, 10 * y]
+                f.p2 = [10 * (x + 1), 10 * (y + 1)]
+                f.angle = 0
+
+                p.parts.append(f)
+                # print(f)
+
+                i += 1
+    except Exception as ex:
+        print(ex)
+
+    p.gen_picture()
+    p.visualize(is_save=False)
+
+
 def main():
     # test_picture_triangle_generation()
     # test_triangle_rectangle_mutation()
     # test_ellipse_triangle_mutation()
-    test_rectangle_triangle_mutation()
+    # test_rectangle_triangle_mutation()
+    # color_test()
+    test_picture_color_mutation()
 
 
 if __name__ == '__main__':

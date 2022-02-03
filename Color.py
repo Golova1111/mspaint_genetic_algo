@@ -75,8 +75,8 @@ class Color:
         [
             BLACK,
             WHITE,
-            GRAY1,
-            GRAY2,
+            # GRAY1,
+            # GRAY2,
             DARKRED,
             BROWN,
             RED,
@@ -101,19 +101,30 @@ c = Color()
 
 
 def get_color(color, delta):
-    amount = delta * 20
-    return np.array([
+    amount = delta * 10
+    return [
         min(max(0, color[0] + amount), 255),
         min(max(0, color[1] + amount), 255),
         min(max(0, color[2] + amount), 255),
-    ])
+    ]
 
 
 color_hue_dict = {}
 color_hue_reverse_dict = {}
 
+black_discriminate = bd = 32
+
 for color in c._ALL_LIST:
-    for delta in range(-10, 10):
+    for delta in range(-25, 25):
+        hue = get_color(color, delta)
+        if not (hue[0] == hue[1] == hue[2]):
+            if hue[0] < bd and hue[1] < bd:
+                continue
+            if hue[2] < bd and hue[1] < bd:
+                continue
+            if hue[0] < bd and hue[2] < bd:
+                continue
+
         hue = get_color(color, delta)
         if not color_hue_reverse_dict.get(tuple(hue)):
             color_hue_dict[tuple(color), delta] = hue

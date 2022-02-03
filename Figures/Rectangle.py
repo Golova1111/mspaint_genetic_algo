@@ -9,7 +9,6 @@ from Figures.Figure import Figure
 
 class Rectangle(Figure):
     MUTATION_POSITION_PROB = 0.15
-    MUTATION_COLOR_PROB = 0.15
     MUTATION_POSITION_SCALE = 15
     MUTATION_ROTATE_PROB = 0.15
     MUTATION_ELLIPSE_PROBABILITY = 0.03
