@@ -48,7 +48,7 @@ class GeneticAlgo:
             ]
             self.cold_start = 0
         else:
-            self.generate_similar(prev_winner)
+            self.generate_similar()
             self.cold_start = 20
 
 
