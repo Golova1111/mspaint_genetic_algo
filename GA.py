@@ -1,3 +1,4 @@
+import pickle
 import random
 import time
 
@@ -20,19 +21,19 @@ class GeneticAlgo:
         self.prev_winner = prev_winner
         self.results = []
 
-        c = 4
+        c = 5
 
         if self.fignum < 5:
-            self.stop_increase = 0.995
+            self.stop_increase = 0.996
             self.POPULATION_SIZE = self.PS = 50 * c
         elif self.fignum < 12:
-            self.stop_increase = 0.996
+            self.stop_increase = 0.997
             self.POPULATION_SIZE = self.PS = 100 * c
         elif self.fignum < 18:
             self.stop_increase = 0.998
             self.POPULATION_SIZE = self.PS = 150 * c
         else:
-            self.stop_increase = 0.998
+            self.stop_increase = 0.9993
             self.POPULATION_SIZE = self.PS = 150 * c
 
         # self.POPULATION_SIZE = 30 * self.fignum
@@ -111,8 +112,9 @@ class GeneticAlgo:
 
             new_population = []
 
-            for num, elem in enumerate(self.population):
+            for num, elem in enumerate(sorted_population[:self.PS // 3]):
                 new_population.append(elem)
+                new_population.append(Picture.full_mutate(elem))
                 new_population.append(Picture.full_mutate(elem))
 
             for i in range(self.PS // 5):
