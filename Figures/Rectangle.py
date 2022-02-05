@@ -166,6 +166,15 @@ class Rectangle(Figure):
         self._repr[9] = self.angle
         return self._repr
 
+    def resize(self, coeff):
+        return Rectangle(
+            p1=(self.p1[0] * coeff, self.p1[1] * coeff),
+            p2=(self.p2[0] * coeff, self.p2[1] * coeff),
+            angle=self.angle,
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
 
     def __repr__(self):
         return (

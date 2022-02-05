@@ -48,7 +48,20 @@ class Picture:
         return self.picture
 
     def visualize(self, title=None, is_save=True):
-        plt.imshow(self.picture, interpolation='nearest')
+        resize_c = 3
+        resized_parts = [fig.resize(resize_c) for fig in self.parts]
+
+        big_pic = Picture(
+            size=(self.w * resize_c, self.h * resize_c),
+            d_picture=self.d_picture,
+            max_fignum=self.max_fignum
+        )
+        big_pic.parts = resized_parts
+        big_pic.gen_picture()
+
+        plt.imshow(big_pic.picture, interpolation='nearest')
+
+        # plt.imshow(self.picture, interpolation='nearest')
         if title:
             plt.title(title)
         if is_save:
