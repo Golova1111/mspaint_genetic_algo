@@ -201,6 +201,16 @@ class Triangle(Figure):
         self._repr[7:10] = self._repr_color
         return self._repr
 
+    def resize(self, coeff):
+        return Triangle(
+            p1=(self.p1[0] * coeff, self.p1[1] * coeff),
+            p2=(self.p2[0] * coeff, self.p2[1] * coeff),
+            p3=(self.p3[0] * coeff, self.p3[1] * coeff),
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
+
     def __repr__(self):
         return (
             f"Triangle("

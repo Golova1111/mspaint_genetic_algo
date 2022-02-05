@@ -157,6 +157,17 @@ class Ellipse(Figure):
         self._repr[9] = self.angle
         return self._repr
 
+    def resize(self, coeff):
+        return Ellipse(
+            center=(self.center[0] * coeff, self.center[1] * coeff),
+            a=self.a * coeff,
+            b=self.b * coeff,
+            angle=self.angle,
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
+
     def __repr__(self):
         return (
             f"Ellipse("
