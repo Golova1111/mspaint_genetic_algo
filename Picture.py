@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from Figures.Ellipse import Ellipse
+from Figures.Line import Line
 from Figures.Rectangle import Rectangle
 from Figures.Triangle import Triangle
 from cuda import _calc_delta, _gen_picture
@@ -88,15 +89,28 @@ class Picture:
                 is_small = 3
             elif len(self.parts) > 15:
                 is_small = 2
+            elif len(self.parts) > 8:
+                is_small = 1.5
             else:
                 is_small = 0
 
-            if random.random() < 0.5:
+            # 45% -- Rectangle
+            # 25% -- Triangle
+            # 25% -- Ellipse
+            # 5%  -- Line (Rectangle)
+
+            prob = random.random()
+            if prob < 0.45:
                 self.parts.insert(
                     position,
                     Rectangle.gen_random(size=self.size, is_small=is_small)
                 )
-            elif random.random() < 0.5:
+            elif prob < 0.5:
+                self.parts.insert(
+                    position,
+                    Line.gen_random(size=self.size, is_small=is_small)
+                )
+            elif prob < 0.75:
                 self.parts.insert(
                     position,
                     Triangle.gen_random(size=self.size, is_small=is_small)
@@ -120,12 +134,17 @@ class Picture:
 
     def mutate(self, gp=True):
         figsize = len(self.parts)
-        k = random.randint(1, min(4, figsize))
+        if figsize < 15:
+            k = random.randint(1, min(4, figsize))
+        elif figsize < 30:
+            k = random.randint(1, 3)
+        else:
+            k = random.randint(1, 2)
 
         if len(self.parts) < 10:
             mutate_elem_idx = random.choices(range(figsize), k=k)
         else:
-            if random.random() < 0.65:
+            if random.random() < 0.75:
                 mutate_elem_idx = np.random.exponential(scale=figsize / 2, size=k)
                 mutate_elem_idx = np.round(np.abs(mutate_elem_idx - figsize)).astype(int)
                 mutate_elem_idx = np.minimum(mutate_elem_idx, np.zeros(shape=k) + (figsize - 1)).astype(int)
@@ -171,12 +190,13 @@ class Picture:
         p = cls(size=icon_picture.size, max_fignum=max_fignum, d_picture=icon_picture.d_picture)
         p.parts = pickle.loads(pickle.dumps(icon_picture.parts))
 
-        random_add_count = random.randint(
-            1, max_fignum - len(icon_picture.parts)
-        )
+        if max_fignum - len(icon_picture.parts) > 0:
+            random_add_count = random.randint(
+                0, max_fignum - len(icon_picture.parts)
+            )
 
-        for i in range(random_add_count):
-            p.add_random_figure(gp=False)
+            for i in range(random_add_count):
+                p.add_random_figure(gp=False)
 
         p.mutate(gp=False)
         p.gen_picture()
