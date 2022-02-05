@@ -48,7 +48,11 @@ class GeneticAlgo:
             ]
             self.cold_start = 0
         else:
+            start_time = time.time()
             self.generate_similar()
+            end_time = time.time()
+            print("generate_similar:", end_time - start_time)
+
             self.cold_start = 20
 
 
@@ -174,10 +178,10 @@ class GeneticAlgo:
         self.population = []
         curr_winner = self.prev_winner
 
-        for i in range(25):
+        for i in range(10):
             population_part = [
                 Picture.generate_similar(curr_winner, max_fignum=self.fignum)
-                for _ in range(1000)
+                for _ in range(3000)
             ]
             self.population += population_part
 
@@ -185,10 +189,29 @@ class GeneticAlgo:
                 self.population, key=lambda x: x.score(self.d_picture)
             )
 
-            if self.population[0].score(self.d_picture) / curr_winner.score(self.d_picture) < 99.8 / 100:
+            print("curr best:", [x.score(self.d_picture) for x in self.population[:5]])
+
+            if self.fignum < 5:
+                c = 96 / 100
+            elif self.fignum < 10:
+                c = 98.5 / 100
+            elif self.fignum < 18:
+                c = 99.4 / 100
+            elif self.fignum < 24:
+                c = 99.6 / 100
+            else:
+                c = 99.85 / 100
+
+            if self.population[0].score(self.d_picture) / self.prev_winner.score(self.d_picture) < c:
+                print("break with coeff: ", self.population[0].score(self.d_picture) / self.prev_winner.score(self.d_picture) * 100)
                 break
 
+            if curr_winner.score(self.d_picture) > self.population[0].score(self.d_picture):
+                print(self.population[0].score(self.d_picture), " --> ", curr_winner.score(self.d_picture))
+                curr_winner = self.population[0]
+
         if curr_winner.score(self.d_picture) < self.population[0].score(self.d_picture):
+            print("not improve, ", curr_winner.score(self.d_picture), " --> ", self.population[0].score(self.d_picture))
             self.population[0] = curr_winner
 
         self.population = sorted(
