@@ -7,7 +7,7 @@ from Color import get_similar_color, get_color
 
 class Figure:
     MUTATION_ROTATION_SCALE = 0.1
-    MUTATION_COLOR_PROB = 0.2
+    MUTATION_COLOR_PROB = 0.17
 
     def _color_mutate(self):
         self.color, self.color_delta = get_similar_color(self.color)

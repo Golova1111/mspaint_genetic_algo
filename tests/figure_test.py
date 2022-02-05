@@ -2,6 +2,7 @@ import numpy as np
 from numba import cuda
 
 from Figures.Ellipse import Ellipse
+from Figures.Line import Line
 from Picture import Picture
 from Color import Color, get_similar_color
 from Figures.Rectangle import Rectangle
@@ -53,6 +54,22 @@ def test_picture_rectangle_generation():
     p.gen_picture()
     p.visualize(is_save=False)
 
+
+def test_picture_line_generation():
+    picture = np.random.randint(low=0, high=255, size=(240, 320, 3), dtype=np.int16)
+    d_picture = cuda.to_device(picture)
+    p = Picture(size=(240, 320), d_picture=d_picture)
+
+    for x in range(100):
+        f = Line.gen_random(size=(240, 320))
+        f.color = c.RED
+        f._color_mutate()
+
+        p.parts.append(f)
+        print(f)
+
+    p.gen_picture()
+    p.visualize(is_save=False)
 
 def test_picture_ellipse_generation():
     picture = np.random.randint(low=0, high=255, size=(240, 320, 3), dtype=np.int16)
@@ -180,7 +197,8 @@ def main():
     # test_ellipse_triangle_mutation()
     # test_rectangle_triangle_mutation()
     # color_test()
-    test_picture_color_mutation()
+    # test_picture_color_mutation()
+    test_picture_line_generation()
 
 
 if __name__ == '__main__':
