@@ -1,13 +1,17 @@
 from numba import cuda
 
+from Figures.Ellipse import Ellipse
+from Figures.Rectangle import Rectangle
+from Figures.Triangle import Triangle
 from GA import GeneticAlgo
+from Picture import Picture
 
 d_picture = None
 
 
 def init(demo_pic):
     figures_number = 2
-    max_figures_number = 100
+    max_figures_number = 200
     figures_delta = 1
 
     epoch = 1
@@ -54,7 +58,8 @@ def init(demo_pic):
         prev_winner, best_score = ga.run()
 
         if prev_best_score:
-            if best_score / prev_best_score > 0.9999:
+            print("epoch delta:", 100 - (best_score / prev_best_score) * 100)
+            if best_score / prev_best_score > 99.9 / 100:
                 break
 
         prev_best_score = best_score
@@ -69,7 +74,10 @@ def init(demo_pic):
         print("]")
 
         prev_winner.visualize(title=f"== BEST for {figures_number} figures, score {best_score} == ")
-        figures_number += figures_delta
+        if figures_number < 40:
+            figures_number += 2 * figures_delta
+        else:
+            figures_number += figures_delta
 
         epoch += 1
 
