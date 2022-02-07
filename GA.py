@@ -1,3 +1,4 @@
+import pickle
 import random
 import time
 
@@ -20,12 +21,20 @@ class GeneticAlgo:
         self.prev_winner = prev_winner
         self.results = []
 
+        c = 5
+
         if self.fignum < 5:
-            self.stop_increase = 0.987
+            self.stop_increase = 0.996
+            self.POPULATION_SIZE = self.PS = 50 * c
         elif self.fignum < 12:
-            self.stop_increase = 0.993
+            self.stop_increase = 0.997
+            self.POPULATION_SIZE = self.PS = 100 * c
+        elif self.fignum < 18:
+            self.stop_increase = 0.998
+            self.POPULATION_SIZE = self.PS = 150 * c
         else:
-            self.stop_increase = 0.999
+            self.stop_increase = 0.9993
+            self.POPULATION_SIZE = self.PS = 150 * c
 
         # self.POPULATION_SIZE = 30 * self.fignum
 
@@ -40,7 +49,11 @@ class GeneticAlgo:
             ]
             self.cold_start = 0
         else:
-            self.generate_similar(prev_winner)
+            start_time = time.time()
+            self.generate_similar()
+            end_time = time.time()
+            print("generate_similar:", end_time - start_time)
+
             self.cold_start = 20
 
 
@@ -97,27 +110,33 @@ class GeneticAlgo:
             if epoch > self.cold_start and delta > self.stop_increase:
                 return best_elem, best_score
 
-            for num, elem in enumerate(self.population):
-                s = 0
-                while s < max(10, self.fignum):
-                    mutate_element = Picture.full_mutate(elem)
-                    if mutate_element.score(self.d_picture) < elem.score(self.d_picture):
-                        self.population[num] = mutate_element
-                        break
-                    s += 1
-                else:
-                    s = 0
-                    while s < max(3, self.fignum // 2):
-                        mutate_element = self.crossover(elem, random.choice(best_population))
-                        if mutate_element.score(self.d_picture) < elem.score(self.d_picture):
-                            self.population[num] = mutate_element
-                            break
-                        s += 1
+            new_population = []
+
+            for num, elem in enumerate(sorted_population[:self.PS // 3]):
+                new_population.append(elem)
+                new_population.append(Picture.full_mutate(elem))
+                new_population.append(Picture.full_mutate(elem))
+
+            for i in range(self.PS // 5):
+                elem1, elem2 = random.sample(best_population, k=2)
+                if random.random() < 0.2:
+                    new_elem1 = self.combine_crossover(elem1, elem2)
+                    new_population.append(new_elem1)
+                else:  # if random.random() < 0.4:
+                    new_elem1, new_elem2 = self.swap_last_layer_crossover(elem1, elem2)
+                    new_population.append(new_elem1)
+                    new_population.append(new_elem2)
+                # else:
+                #     new_elem1, new_elem2 = self.append_last_layer_crossover(elem1, elem2)
+                #     new_population.append(new_elem1)
+                #     new_population.append(new_elem2)
+
+            self.population = sorted(new_population, key=lambda x: x.score(self.d_picture))[: self.PS]
 
         return best_elem, best_score
 
     @staticmethod
-    def crossover(elem1, elem2):
+    def combine_crossover(elem1, elem2):
         p = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
         min_parts_len = min(
             len(elem1.parts),
@@ -133,14 +152,70 @@ class GeneticAlgo:
         p.gen_picture()
         return p
 
-    def generate_similar(self, prev_winner):
-        self.population = [
-            Picture.generate_similar(self.prev_winner, max_fignum=self.fignum)
-            for _ in range(
-                max(5 * self.fignum * self.POPULATION_SIZE, 12000)
+    @staticmethod
+    def swap_last_layer_crossover(elem1, elem2):
+        p1 = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
+        p2 = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
+
+        p1.parts = elem1.parts[:-1] + [elem2.parts[-1]]
+        p2.parts = elem2.parts[:-1] + [elem1.parts[-1]]
+
+        p1.gen_picture()
+        p2.gen_picture()
+        return p1, p2
+
+    @staticmethod
+    def append_last_layer_crossover(elem1, elem2):
+        p1 = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
+        p2 = Picture(size=elem1.size, d_picture=elem2.d_picture, max_fignum=elem1.max_fignum)
+
+        p1.parts = elem1.parts + [elem2.parts[-1]]
+        p2.parts = elem2.parts + [elem1.parts[-1]]
+
+        p1.gen_picture()
+        p2.gen_picture()
+        return p1, p2
+
+    def generate_similar(self):
+        self.population = []
+        curr_winner = self.prev_winner
+
+        for i in range(10):
+            population_part = [
+                Picture.generate_similar(curr_winner, max_fignum=self.fignum)
+                for _ in range(3000)
+            ]
+            self.population += population_part
+
+            self.population = sorted(
+                self.population, key=lambda x: x.score(self.d_picture)
             )
-        ]
-        self.population[0] = prev_winner
+
+            print("curr best:", [x.score(self.d_picture) for x in self.population[:5]])
+
+            if self.fignum < 5:
+                c = 96 / 100
+            elif self.fignum < 10:
+                c = 98.5 / 100
+            elif self.fignum < 18:
+                c = 99.4 / 100
+            elif self.fignum < 24:
+                c = 99.6 / 100
+            else:
+                c = 99.85 / 100
+
+            if self.population[0].score(self.d_picture) / self.prev_winner.score(self.d_picture) < c:
+                print("break with coeff: ", self.population[0].score(self.d_picture) / self.prev_winner.score(self.d_picture) * 100)
+                break
+
+            if curr_winner.score(self.d_picture) > self.population[0].score(self.d_picture):
+                print(self.population[0].score(self.d_picture), " --> ", curr_winner.score(self.d_picture))
+                curr_winner = self.population[0]
+
+        if curr_winner.score(self.d_picture) < self.population[0].score(self.d_picture):
+            print("not improve, ", curr_winner.score(self.d_picture), " --> ", self.population[0].score(self.d_picture))
+            self.population[0] = curr_winner
+
         self.population = sorted(
             self.population, key=lambda x: x.score(self.d_picture)
         )[:self.POPULATION_SIZE]

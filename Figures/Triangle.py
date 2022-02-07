@@ -2,14 +2,14 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color
+from Color import Color, get_similar_color, c, get_color, get_random_color
 from Figures.Figure import Figure
 
 
 class Triangle(Figure):
-    MUTATION_POSITION_PROB = 0.25
-    MUTATION_COLOR_PROB = 0.1
+    MUTATION_POSITION_PROB = 0.15
     MUTATION_POSITION_SCALE = 15
+    MUTATION_RECTANGLE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 1
 
@@ -81,6 +81,9 @@ class Triangle(Figure):
         return picture
 
     def mutate(self):
+        if random.random() < self.MUTATION_RECTANGLE_PROBABILITY:
+            return self._rectangle_mutate()
+
         deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=6)
 
         if random.random() < self.MUTATION_POSITION_PROB:
@@ -116,24 +119,76 @@ class Triangle(Figure):
         return self
 
     @classmethod
-    def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+    def gen_random(cls, size, is_small=False):
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
-        h2 = random.randint(0, h)
-        h3 = random.randint(0, h)
         w1 = random.randint(0, w)
-        w2 = random.randint(0, w)
-        w3 = random.randint(0, w)
+        color, color_delta = get_random_color()
+
+        if not is_small:
+            dh2 = random.randint(-h // 2, h // 2)
+            dw2 = random.randint(-w // 2, w // 2)
+            dh3 = random.randint(-h // 2, h // 2)
+            dw3 = random.randint(-w // 2, w // 2)
+        else:
+            dh2 = random.randint(-h // (is_small * 2), h // (is_small * 2))
+            dw2 = random.randint(-w // (is_small * 2), w // (is_small * 2))
+            dh3 = random.randint(-h // (is_small * 2), h // (is_small * 2))
+            dw3 = random.randint(-w // (is_small * 2), w // (is_small * 2))
 
         return Triangle(
             p1=(h1, w1),
-            p2=(h2, w2),
-            p3=(h3, w3),
-            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            p2=(h1 + dh2, w1 + dw2),
+            p3=(h1 + dh3, w1 + dw3),
+            color=color,
+            color_delta=color_delta,
             max_size=(h, w)
         )
+
+    def _rectangle_mutate(self):
+        from Figures.Rectangle import Rectangle
+
+        if random.random() < 0.4:
+            max_h = max(max(self.p1[0], self.p2[0]), self.p3[0])
+            min_h = min(min(self.p1[0], self.p2[0]), self.p3[0])
+
+            max_w = max(max(self.p1[1], self.p2[1]), self.p3[1])
+            min_w = min(min(self.p1[1], self.p2[1]), self.p3[1])
+
+            return Rectangle(
+                p1=(min_h, min_w),
+                p2=(max_h, max_w),
+                color=self.color,
+                color_delta=self.color_delta,
+                angle=0,
+                max_size=(self.max_h, self.max_w)
+            )
+        else:
+            c1 = random.random() / 2 + 0.25
+            c2 = random.random() / 2 + 0.25
+
+            if random.random() < 0.5:
+                p1_x = self.p1[0] + int(c1 * (self.p2[0] - self.p1[0]))
+                p1_y = self.p1[1] + int(c1 * (self.p2[1] - self.p1[1]))
+                p2_x = self.p2[0] + int(c2 * (self.p3[0] - self.p2[0]))
+                p2_y = self.p2[1] + int(c2 * (self.p3[1] - self.p2[1]))
+            else:
+                p1_x = self.p2[0] + int(c1 * (self.p3[0] - self.p2[0]))
+                p1_y = self.p2[1] + int(c1 * (self.p3[1] - self.p2[1]))
+                p2_x = self.p3[0] + int(c2 * (self.p1[0] - self.p3[0]))
+                p2_y = self.p3[1] + int(c2 * (self.p1[1] - self.p3[1]))
+
+            return Rectangle(
+                p1=(min(p1_x, p2_x), min(p1_y, p2_y)),
+                p2=(max(p1_x, p2_x), max(p1_y, p2_y)),
+                color=self.color,
+                color_delta=self.color_delta,
+                angle=0,
+                max_size=(self.max_h, self.max_w)
+            )
+
 
     def _get_repr(self):
         self._repr[0] = self.CUDA_FIGURE_ID
@@ -146,13 +201,23 @@ class Triangle(Figure):
         self._repr[7:10] = self._repr_color
         return self._repr
 
+    def resize(self, coeff):
+        return Triangle(
+            p1=(self.p1[0] * coeff, self.p1[1] * coeff),
+            p2=(self.p2[0] * coeff, self.p2[1] * coeff),
+            p3=(self.p3[0] * coeff, self.p3[1] * coeff),
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
+
     def __repr__(self):
         return (
             f"Triangle("
             f"p1={self.p1}, "
             f"p2={self.p2}, "
             f"p3={self.p3}, "
-            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color={self.color}, "
             f"color_delta={self.color_delta}, "
             f"max_size=({self.max_h}, {self.max_w})"
             f")"

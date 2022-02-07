@@ -9,12 +9,18 @@ from numba import cuda
 def _calc_elem_delta(curr_image, picture, answer):
     sum = 0
 
-    p, c = cuda.grid(2)
-    for x in range(curr_image.shape[0]):
-        sum += abs(picture[x, p, c] - curr_image[x, p, c])
+    x, y = cuda.grid(2)
+    picr, picg, picb = curr_image[x, y, :]
+    originr, origing, originb = picture[x, y, :]
 
-    # answer[p, c] = sum
-    answer[p + curr_image.shape[1] * c] = sum
+    if (originr + picr) / 2 < 128:
+        answer[x + curr_image.shape[0] * y] = math.sqrt(
+            2 * (originr - picr)**2 + 4 * (origing - picg)**2 + 3 * (originb - picb)**2
+        )
+    else:
+        answer[x + curr_image.shape[0] * y] = math.sqrt(
+            3 * (originr - picr) ** 2 + 4 * (origing - picg) ** 2 + 3 * (originb - picb) ** 2
+        )
 
 
 def _calc_delta(device_pic, image):
@@ -54,33 +60,16 @@ def _gen_elem_picture(curr_image, picture_rules):
     x, y = cuda.grid(2)
 
     for rule in picture_rules:
-        alpha = rule[9] / 100
+        alpha = rule[9]
 
         # -- Rectangle
         if rule[0] == 0:
             cx, cy = int((rule[1] + rule[3]) // 2), int((rule[2] + rule[4]) // 2)
 
             # simple "big radius check"
-            r_big = (rule[1] - cx)**2 + (rule[2] - cy)**2
-            if (y - cx)**2 + (x - cy)**2 > r_big:
+            r_big = (rule[1] - cx) ** 2 + (rule[2] - cy) ** 2
+            if (y - cx) ** 2 + (x - cy) ** 2 > r_big:
                 continue
-
-            # simple inner ellipse
-            # if (
-            #     ((y - cx) * math.cos(alpha) + (x - cy) * math.sin(alpha)) ** 2 / (rule[1] - cx)**2 +
-            #     ((y - cx) * math.sin(alpha) - (x - cy) * math.cos(alpha)) ** 2 / (rule[2] - cy)**2
-            #     < 1
-            # ):
-            #     curr_image[x, y, :] = rule[5], rule[6], rule[7]
-
-            # r_small = min(
-            #     (rule[1] - cx) ** 2,
-            #     (rule[2] - cy) ** 2
-            # )
-            #
-            # if (y - cx) ** 2 + (x - cy) ** 2 <= r_small:
-            #     curr_image[x, y, :] = rule[5], rule[6], rule[7]
-            #     continue
 
             # get rotated coordinates
             x0 = int((rule[1] - cx) * math.cos(alpha) - (rule[2] - cy) * math.sin(alpha) + cx)
@@ -102,14 +91,16 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if (side_1 == side_2 == side_3):
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
-            else:
-                # # triangle_second:
-                side_1 = (y - x1) * (y3 - y1) - (x3 - x1) * (x - y1) > 0
-                side_2 = (y - x0) * (y1 - y0) - (x1 - x0) * (x - y0) >= 0
-                side_3 = (y - x3) * (y0 - y3) - (x0 - x3) * (x - y3) > 0
+                break
 
-                if (side_1 == side_2 == side_3):
-                    curr_image[x, y, :] = rule[5], rule[6], rule[7]
+            # # triangle_second:
+            side_1 = (y - x1) * (y3 - y1) - (x3 - x1) * (x - y1) > 0
+            side_2 = (y - x0) * (y1 - y0) - (x1 - x0) * (x - y0) >= 0
+            side_3 = (y - x3) * (y0 - y3) - (x0 - x3) * (x - y3) > 0
+
+            if (side_1 == side_2 == side_3):
+                curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                break
 
         # -- Triangle
         if rule[0] == 1:
@@ -123,6 +114,7 @@ def _gen_elem_picture(curr_image, picture_rules):
 
             if side_1 == side_2 == side_3:
                 curr_image[x, y, :] = rule[7], rule[8], rule[9]
+                break
 
         # -- Ellipse
         if rule[0] == 2:
@@ -136,13 +128,15 @@ def _gen_elem_picture(curr_image, picture_rules):
             )
             if mask:
                 curr_image[x, y, :] = rule[5], rule[6], rule[7]
+                break
 
 
 def _gen_picture(picture):
-    decoded_parts = np.zeros((len(picture.parts), 10))
+    lparts = len(picture.parts)
+    decoded_parts = np.zeros((lparts, 10))
 
     for i, part in enumerate(picture.parts):
-        decoded_parts[i] = part._get_repr()
+        decoded_parts[lparts - 1 - i] = part._get_repr()
 
     d_image = cuda.to_device(picture.picture)
     d_parts = cuda.to_device(decoded_parts)
@@ -168,19 +162,17 @@ def _gen_picture(picture):
     # ============ instant score calculation
     # =======================================
 
-    answer = np.zeros((picture.picture.shape[1] * 3), dtype=np.int64)
+    answer = np.zeros((picture.picture.shape[0] * picture.picture.shape[1]), dtype=np.int64)
     d_answer = cuda.to_device(answer)
 
     # Calculate the number of thread blocks in the grid
-    TPB = 30
+    blockspergrid_x = int(math.ceil(picture.picture.shape[0] / threadsperblock[0]))
     blockspergrid_y = int(math.ceil(picture.picture.shape[1] / threadsperblock[0]))
-    blockspergrid_z = 3
-    threadsperblock = (TPB, 1)
-    blockspergrid = (blockspergrid_y, blockspergrid_z)
+    threadsperblock = (TPB, TPB)
+    blockspergrid = (blockspergrid_x, blockspergrid_y)
 
     _calc_elem_delta[blockspergrid, threadsperblock](picture.d_picture, d_image, d_answer)
     res = d_answer.copy_to_host()
     picture._score = np.sum(res)
 
     return picture
-

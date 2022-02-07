@@ -3,16 +3,16 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color
+from Color import Color, get_similar_color, c, get_color, get_random_color
 from Figures.Figure import Figure
 
 
 class Rectangle(Figure):
-    MUTATION_POSITION_PROB = 0.2
-    MUTATION_COLOR_PROB = 0.1
+    MUTATION_POSITION_PROB = 0.15
     MUTATION_POSITION_SCALE = 15
     MUTATION_ROTATE_PROB = 0.15
     MUTATION_ELLIPSE_PROBABILITY = 0.03
+    MUTATION_TRIANGLE_PROBABILITY = 0.03
 
     CUDA_FIGURE_ID = 0
 
@@ -38,6 +38,11 @@ class Rectangle(Figure):
         return picture
 
     def mutate(self):
+        if random.random() < self.MUTATION_ELLIPSE_PROBABILITY:
+            return self._ellipse_mutate()
+        if random.random() < self.MUTATION_TRIANGLE_PROBABILITY:
+            return self._triangle_mutate()
+
         deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=4)
 
         if random.random() < self.MUTATION_POSITION_PROB:
@@ -49,14 +54,21 @@ class Rectangle(Figure):
         if random.random() < self.MUTATION_POSITION_PROB:
             self.p2[1] = int(self.p2[1] + deltas[3])
 
+        self.p1[0] = max(0, self.p1[0])
+        self.p2[0] = max(0, self.p2[0])
+        self.p1[1] = max(0, self.p1[1])
+        self.p2[1] = max(0, self.p2[1])
+
+        self.p1[0] = min(self.max_h, self.p1[0])
+        self.p2[0] = min(self.max_h, self.p2[0])
+        self.p1[1] = min(self.max_w, self.p1[1])
+        self.p2[1] = min(self.max_w, self.p2[1])
+
         if random.random() < self.MUTATION_COLOR_PROB:
             self._color_mutate()
 
         if random.random() < self.MUTATION_ROTATE_PROB:
             self._angle_mutate()
-
-        if random.random() < self.MUTATION_ELLIPSE_PROBABILITY:
-            return self._ellipse_mutate()
 
         return self
 
@@ -79,22 +91,68 @@ class Rectangle(Figure):
             max_size=(self.max_h, self.max_w)
         )
 
+    def _triangle_mutate(self):
+        from Figures.Triangle import Triangle
+
+        cx, cy = int((self.p1[0] + self.p2[0]) // 2), int((self.p1[1] + self.p2[1]) // 2)
+
+        p1 = [
+            random.randint(min(self.p1[0], self.p2[0]), max(self.p1[0], self.p2[0])),
+            self.p1[1]
+        ]
+        p2 = [
+            self.p2[0],
+            random.randint(min(self.p1[1], self.p2[1]), max(self.p1[1], self.p2[1])),
+        ]
+        p3 = [
+            random.randint(min(self.p1[0], self.p2[0]), max(self.p1[0], self.p2[0])),
+            self.p2[1]
+        ]
+
+        asin, acos = math.sin(self.angle), math.cos(self.angle)
+
+        x1 = int((p1[0] - cx) * acos - (p1[1] - cy) * asin + cx)
+        y1 = int((p1[0] - cx) * asin + (p1[1] - cy) * acos + cy)
+
+        x2 = int((p2[0] - cx) * acos - (p2[1] - cy) * asin + cx)
+        y2 = int((p2[0] - cx) * asin + (p2[1] - cy) * acos + cy)
+
+        x3 = int((p3[0] - cx) * acos - (p3[1] - cy) * asin + cx)
+        y3 = int((p3[0] - cx) * asin + (p3[1] - cy) * acos + cy)
+
+        return Triangle(
+            p1=[x1, y1],
+            p2=[x2, y2],
+            p3=[x3, y3],
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_h, self.max_w)
+        )
+
     @classmethod
-    def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+    def gen_random(cls, size, is_small=False):
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
-        h2 = random.randint(0, h)
         w1 = random.randint(0, w)
-        w2 = random.randint(0, w)
-        angle = random.randint(0, 628)
+
+        hsize = random.randint(5, h // 2)
+        wsize = random.randint(5, w // 2)
+        color, color_delta = get_random_color()
+
+        if is_small:
+            hsize = hsize // is_small
+            wsize = wsize // is_small
+
+        angle = (random.random() - 0.5) * (2 * math.pi)
 
         return Rectangle(
-            p1=(min(h1, h2), min(w1, w2)),
-            p2=(max(h1, h2), max(w1, w2)),
+            p1=(h1, w1),
+            p2=(min(h1 + hsize, w), min(w1 + wsize, w)),
             angle=angle,
-            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            color=color,
+            color_delta=color_delta,
             max_size=(h, w)
         )
 
@@ -108,13 +166,22 @@ class Rectangle(Figure):
         self._repr[9] = self.angle
         return self._repr
 
+    def resize(self, coeff):
+        return Rectangle(
+            p1=(self.p1[0] * coeff, self.p1[1] * coeff),
+            p2=(self.p2[0] * coeff, self.p2[1] * coeff),
+            angle=self.angle,
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
 
     def __repr__(self):
         return (
             f"Rectangle("
             f"p1={self.p1}, "
             f"p2={self.p2}, "
-            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color={self.color}, "
             f"color_delta={self.color_delta}, "
             f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"

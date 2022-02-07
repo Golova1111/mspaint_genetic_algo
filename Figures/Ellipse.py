@@ -3,15 +3,15 @@ import random
 
 import numpy as np
 
-from Color import Color, get_similar_color, c, get_color
+from Color import get_color, get_random_color
 from Figures.Figure import Figure
 
 
 class Ellipse(Figure):
     MUTATION_POSITION_PROB = 0.15
     MUTATION_ROTATE_PROB = 0.15
-    MUTATION_COLOR_PROB = 0.1
     MUTATION_RECTANGLE_PROBABILITY = 0.03
+    MUTATION_TRIANGLE_PROBABILITY = 0.03
 
     MUTATION_POSITION_SCALE = 15
     CUDA_FIGURE_ID = 2
@@ -42,6 +42,11 @@ class Ellipse(Figure):
         return picture
 
     def mutate(self):
+        if random.random() < self.MUTATION_TRIANGLE_PROBABILITY:
+            return self._triangle_mutate()
+        if random.random() < self.MUTATION_RECTANGLE_PROBABILITY:
+            return self._rectangle_mutate()
+
         deltas = np.random.normal(loc=0, scale=self.MUTATION_POSITION_SCALE, size=4)
 
         if random.random() < self.MUTATION_POSITION_PROB:
@@ -70,9 +75,6 @@ class Ellipse(Figure):
         if random.random() < self.MUTATION_COLOR_PROB:
             self._color_mutate()
 
-        if random.random() < self.MUTATION_RECTANGLE_PROBABILITY:
-            return self._rectangle_mutate()
-
         return self
 
     def _rectangle_mutate(self):
@@ -87,21 +89,61 @@ class Ellipse(Figure):
             max_size=(self.max_h, self.max_w)
         )
 
+    def _triangle_mutate(self):
+        from Figures.Triangle import Triangle
+
+        angle1 = random.random() * 2
+        angle2 = random.random() * 2 + 2
+        angle3 = random.random() * 2 + 4
+
+        # p1 = [self.center[0] + int(self.a * math.cos(angle1)), self.center[1] + int(self.b * math.sin(angle1))]
+        # p2 = [self.center[0] + int(self.a * math.cos(angle2)), self.center[1] + int(self.b * math.sin(angle2))]
+        # p3 = [self.center[0] + int(self.a * math.cos(angle3)), self.center[1] + int(self.b * math.sin(angle3))]
+
+        p1 = [int(self.a * math.cos(angle1)), int(self.b * math.sin(angle1))]
+        p2 = [int(self.a * math.cos(angle2)), int(self.b * math.sin(angle2))]
+        p3 = [int(self.a * math.cos(angle3)), int(self.b * math.sin(angle3))]
+
+        asin, acos = math.sin(self.angle), math.cos(self.angle)
+
+        p1 = [int(p1[0] * acos - p1[1] * asin) + self.center[0], int(p1[0] * asin + p1[1] * acos) + self.center[1]]
+        p2 = [int(p2[0] * acos - p2[1] * asin) + self.center[0], int(p2[0] * asin + p2[1] * acos) + self.center[1]]
+        p3 = [int(p3[0] * acos - p3[1] * asin) + self.center[0], int(p3[0] * asin + p3[1] * acos) + self.center[1]]
+
+        return Triangle(
+            p1=p1,
+            p2=p2,
+            p3=p3,
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_h, self.max_w)
+        )
+
     @classmethod
-    def gen_random(cls, size):
-        h = size[0]
-        w = size[1]
+    def gen_random(cls, size, is_small=False):
+        h = size[1]
+        w = size[0]
 
         h1 = random.randint(0, h)
         w1 = random.randint(0, w)
-        angle = random.randint(0, 628)
+        angle = (random.random() - 0.5) * (2 * math.pi)
+
+        a = random.randint(5, h // 3)
+        b = random.randint(5, w // 3)
+
+        if is_small:
+            a = a // is_small
+            b = b // is_small
+
+        color, color_delta = get_random_color()
 
         return Ellipse(
             center=(h1, w1),
-            a=random.randint(5, h // 2),
-            b=random.randint(5, w // 2),
+            a=a,
+            b=b,
             angle=angle,
-            color=Color.ALL[random.randint(0, Color.ALL.shape[0] - 1)],
+            color=color,
+            color_delta=color_delta,
             max_size=(h, w)
         )
 
@@ -115,13 +157,24 @@ class Ellipse(Figure):
         self._repr[9] = self.angle
         return self._repr
 
+    def resize(self, coeff):
+        return Ellipse(
+            center=(self.center[0] * coeff, self.center[1] * coeff),
+            a=self.a * coeff,
+            b=self.b * coeff,
+            angle=self.angle,
+            color=self.color,
+            color_delta=self.color_delta,
+            max_size=(self.max_w * coeff, self.max_h * coeff)
+        )
+
     def __repr__(self):
         return (
             f"Ellipse("
             f"center={self.center}, "
             f"a={self.a}, "
             f"b={self.b}, "
-            f"color=np.array([{self.color[0]}, {self.color[1]}, {self.color[2]}]), "
+            f"color={self.color}, "
             f"color_delta={self.color_delta}, "
             f"angle={self.angle}, "
             f"max_size=({self.max_h}, {self.max_w})"
