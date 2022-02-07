@@ -1,8 +1,7 @@
 Python + CUDA "paint-looks-alike generative art" evolution algorithm
 ======
 
-This is a Python + CUDA solution, that recreate given image in Paint-looks-alike style using the evolutionary algorithm approch
-
+This is a Python + CUDA solution, that recreates given image in Paint-looks-alike style using the evolutionary algorithm approach
 ### Example of work:
 
 <img src="readme/img.png" alt="drawing" style="width:750px;"/>
@@ -21,34 +20,33 @@ run the main.py
 **Important:** the size of the initial picture (height x width) should be multiple be 20, e.g. 180x240 
 (this limitation goes from the current cuda realization)
 
-I strongly advise not use big pictures, the optimal size is around 200x200
+I strongly advise not using big pictures, the optimal size is around 200x200
 
 This is theoretically possible to run this script without CUDA (the environment variable **NUMBA_ENABLE_CUDASIM** should be set to 1)
-however the time of execution will increase significantly
+however, the time of execution will increase significantly
 
 ## Main realization details
 
-There are 3 + 1 figures available (Rectangle, Ellipse, Triangle and Line as a particular case of Rectangle). 
-Rectangle and Ellipse can be rotated (axis of rotation is the center of a figure).
+There are 3 + 1 figures available (Rectangle, Ellipse, Triangle, and Line as a particular case of Rectangle). 
+Rectangle and Ellipse can be rotated (the axis of rotation is the center of a figure)
 
 Opacity is not supported as the main idea of the script was to generate the "paint-like" images 
 
-The possible mutations of one figure is to slightly change the position of the figure, angle of rotation (if possible) 
+The possible mutations of one figure: slightly change the position of the figure, angle of rotation (if possible) 
 and color of the figure (substitute with some similar color). Additionally, it is possible to convert one figure to another:
   - Rectangle ↔ Triangle
   - Rectangle ↔ Ellipse
   - Ellipse → Triangle
   
-The mutations in the scope of the whole picture includes adding new figure, removing figure and shuffle the order of figures.
-
+The mutations in the scope of the whole picture include adding new figures, removing figures and shuffling the order of figures.
 
 The examples of mutation can be found in `tests/figure_test.py`
 
-The evolution itself includes mutation and simple crossovers of the best part of population. 
-Evolution is sequential, e.g. we are trying to achieve as good as possible result with `n` figuress and then allow to explore `n + delta` figures
+The evolution itself includes mutation and simple crossovers of the best part of the population. 
+Evolution is sequential, e.g. we are trying to achieve as good as possible result with `n` figures and then allow to explore `n + delta` figures
 
-The goal function in not the simple sum of pixel differences but more complex [readmean](https://en.wikipedia.org/wiki/Color_difference#sRGB) distance, 
-this distance is more appropriate measurement from the point of the human perception of color
+The goal function is not the simple sum of pixel differences but more complex [readmean](https://en.wikipedia.org/wiki/Color_difference#sRGB) distance, 
+this distance is a more appropriate measurement from the point of the human perception of color
 
 The possible color pallet is limited on purpose with around 60 "standard" paint colors
 
@@ -63,4 +61,4 @@ This project was done by Holovashchenko Vadym and Anna Nosach for the Evolutiona
 
 <img src="readme/uwr.png" alt="drawing" style="width:750px;"/>
 
-_(campus of the Institute of Computer Science, University of Wrocław)_
+_(a campus of the Institute of Computer Science, University of Wrocław)_
