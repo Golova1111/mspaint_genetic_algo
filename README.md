@@ -5,7 +5,7 @@ This is a Python + CUDA solution, that recreate given image in Paint-looks-alike
 
 ### Example of work:
 
-<img src="readme/img.png" alt="drawing" style="width:400px;"/>
+<img src="readme/img.png" alt="drawing" style="width:750px;"/>
 
 _(here on pic: authors of the current script, extended color space)_
 
@@ -52,7 +52,7 @@ this distance is more appropriate measurement from the point of the human percep
 
 The possible color pallet is limited on purpose with around 60 "standard" paint colors
 
-<img src="readme/color_palllet.png" alt="drawing" style="width:400px;"/>
+<img src="readme/color_pallet.png" alt="drawing" style="width:200px;"/>
 
 It is possible to add "hue" and expand the color space from 60 to around 2800 colors, just set the 
 variable **IS_EXTENDED_COLOR_SPACE** in `Color.py` to True
@@ -60,3 +60,7 @@ variable **IS_EXTENDED_COLOR_SPACE** in `Color.py` to True
 ### Acknowledgment
 
 This project was done by Holovashchenko Vadym and Anna Nosach for the Evolutionary Algorithm course, University of Wrocław, 2021
+
+<img src="readme/uwr.png" alt="drawing" style="width:750px;"/>
+
+_(campus of the Institute of Computer Science, University of Wrocław)_
