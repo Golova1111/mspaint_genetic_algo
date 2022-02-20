@@ -1,5 +1,5 @@
-import copy
 import datetime
+import os
 import pickle
 import random
 
@@ -65,7 +65,12 @@ class Picture:
         if title:
             plt.title(title)
         if is_save:
-            plt.savefig(f"/home/vadym/University/Term 3/EvolAlg/Project/pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png")
+            plt.savefig(
+                os.path.join(
+                    os.getcwd(),
+                    f"pic/save/epoch{len(self.parts)}_{datetime.datetime.now()}.png"
+                )
+            )
         plt.show()
 
     def delta(self, icon_picture):
