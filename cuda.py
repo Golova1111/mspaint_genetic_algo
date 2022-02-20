@@ -1,5 +1,4 @@
 import math
-import time
 
 import numpy as np
 from numba import cuda
@@ -14,11 +13,11 @@ def _calc_elem_delta(curr_image, picture, answer):
     originr, origing, originb = picture[x, y, :]
 
     if (originr + picr) / 2 < 128:
-        answer[x + curr_image.shape[0] * y] = math.sqrt(
+        answer[x + curr_image.shape[0] * y] = (
             2 * (originr - picr)**2 + 4 * (origing - picg)**2 + 3 * (originb - picb)**2
         )
     else:
-        answer[x + curr_image.shape[0] * y] = math.sqrt(
+        answer[x + curr_image.shape[0] * y] = (
             3 * (originr - picr) ** 2 + 4 * (origing - picg) ** 2 + 3 * (originb - picb) ** 2
         )
 
