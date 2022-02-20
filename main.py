@@ -4,5 +4,5 @@ from matplotlib import image
 from ga_run import init
 
 
-demo_pic = image.imread('pic/berlin_xsm.jpg').astype(np.int16)
+demo_pic = image.imread('pic/demo_pic.jpg').astype(np.int16)
 init(demo_pic)
